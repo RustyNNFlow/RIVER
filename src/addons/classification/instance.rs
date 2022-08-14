@@ -7,14 +7,12 @@ pub enum ClsInstanceData{
     Infer {category:String, score:f32},
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag="type")]
 pub struct ClsGroupUsage{
     image_name:String,
     image_height:i32,
     image_width:i32,
 }
 #[derive(Serialize, Deserialize, Debug)]
-#[serde(tag="type")]
 pub struct ClsInstancesGroup{
     data:Vec<ClsInstanceData>,
     usage:ClsGroupUsage,
