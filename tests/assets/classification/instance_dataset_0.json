@@ -1,0 +1,17 @@
+{
+  "data": [{
+    "data": [{
+      "category": "修勾",
+      "score": 0.1,
+      "type": "Infer"
+    }],
+    "usage": {
+      "image_height": 1,
+      "image_name": "",
+      "image_width": 1
+    }
+  }],
+  "usage": {
+    "dataset_name": "1"
+  }
+}

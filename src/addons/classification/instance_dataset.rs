@@ -1,5 +1,7 @@
 use serde::{Serialize, Deserialize};
 use super::instance::ClsInstancesGroup;
+use std::fs;
+
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsDatasetUsage{
@@ -20,5 +22,9 @@ impl ClsInstancesDataset {
     }
     pub fn dataset_name(&self) -> String {
         self.usage.dataset_name.clone()
+    }
+    pub fn load_by_file(json_path: &String) -> ClsInstancesDataset{
+        let data = fs::read_to_string(json_path).unwrap();
+        serde_json::from_str(&data).unwrap()
     }
 }

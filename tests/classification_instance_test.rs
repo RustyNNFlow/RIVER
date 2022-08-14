@@ -25,4 +25,14 @@ fn test_instance_dataset_classification(){
     let _o = deserialized.dumps();
     let _dataset_name = deserialized.dataset_name();
 
+    let deserialized:instance_dataset::ClsInstancesDataset=
+        instance_dataset::ClsInstancesDataset::load_by_file(&String::from("tests/assets/classification/instance_dataset_0.json"));
+    let _o = deserialized.dumps();
+    let _dataset_name = deserialized.dataset_name();
+
+    let deserialized:instance_dataset::ClsInstancesDataset=
+        instance_dataset::ClsInstancesDataset::load_by_file(&String::from("tests/assets/classification/instance_dataset_1.json"));
+    let _o = deserialized.dumps();
+    let _dataset_name = deserialized.dataset_name();
+
 }
