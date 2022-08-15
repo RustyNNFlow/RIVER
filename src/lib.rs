@@ -25,6 +25,7 @@ pub use tensor::{
 };
 
 pub mod nn;
+pub mod models;
 
 pub fn maybe_init_cuda() {
     unsafe {
