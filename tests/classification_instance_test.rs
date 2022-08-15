@@ -35,4 +35,6 @@ fn test_instance_dataset_classification(){
     let _o = deserialized.dumps();
     let _dataset_name = deserialized.dataset_name();
 
+    deserialized.dump_to_file(&String::from("tmp.json"));
+
 }
