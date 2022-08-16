@@ -54,6 +54,7 @@ pub struct ResNetCfg{
     c2: i64,
     c3: i64,
     c4: i64,
+    in_channels:i64,
 }
 
 impl ResNetCfg {
@@ -81,7 +82,7 @@ impl ResNet {
        cfg:&ResNetCfg,
     )->ResNet{
         ResNet{
-            conv1: conv2d(p / "conv1", 3, 64, 7, 3, 2),
+            conv1: conv2d(p / "conv1", cfg.in_channels, 64, 7, 3, 2),
             bn1: nn::batch_norm2d(p / "bn1", 64, Default::default()),
             layer1: basic_layer(p / "layer1", 64, 64, 1, cfg.c1),
             layer2:  basic_layer(p / "layer2", 64, 128, 2, cfg.c2),
