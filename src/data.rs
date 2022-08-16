@@ -90,6 +90,10 @@ impl Iter2 {
         self.return_smaller_last_batch = true;
         self
     }
+
+    pub fn total_size(&self)->i64{
+        self.total_size
+    }
 }
 
 impl Iterator for Iter2 {

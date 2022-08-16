@@ -3,6 +3,7 @@ extern crate lazy_static;
 extern crate serde;
 pub mod addons;
 pub mod data;
+pub mod datasets;
 
 mod error;
 pub use error::TchError;
