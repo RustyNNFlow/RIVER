@@ -5,6 +5,24 @@ use crate::{
     nn,
     Tensor,
 };
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag="type")]
+pub struct ImageClassifierCfg{
+    backbone:resnet::ResNetCfg,
+    neck:gap::GlobalAveragePoolingCfg,
+    head:linear_head::LinearClsHeadCfg,
+}
+
+impl ImageClassifierCfg {
+    pub fn loads(json_str: &String) -> ImageClassifierCfg {
+        serde_json::from_str(json_str).unwrap()
+    }
+    pub fn dumps(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+}
 
 #[derive(Debug)]
 pub struct ImageClassifier{
@@ -16,11 +34,12 @@ pub struct ImageClassifier{
 impl ImageClassifier {
     pub fn new(
         p: &nn::Path,
+        cfg: &ImageClassifierCfg,
     )->ImageClassifier{
         ImageClassifier{
-            backbone: resnet::ResNet::new(p, 2, 2, 2, 2),
-            neck: gap::GlobalAveragePooling::new(),
-            head: linear_head::LinearClsHead::new(p, 512, 2),
+            backbone: resnet::ResNet::new(p, &cfg.backbone),
+            neck: gap::GlobalAveragePooling::new(p, &cfg.neck),
+            head: linear_head::LinearClsHead::new(p, &cfg.head),
         }
     }
 }

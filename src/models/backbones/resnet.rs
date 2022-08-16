@@ -7,6 +7,7 @@ use crate::{
     nn::SequentialT,
     Tensor,
 };
+use serde::{Serialize, Deserialize};
 
 fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: i64) -> Conv2D {
     let conv2d_cfg = nn::ConvConfig { stride, padding, bias: false, ..Default::default() };
@@ -46,6 +47,24 @@ fn basic_layer(p: nn::Path, c_in: i64, c_out: i64, stride: i64, cnt: i64) -> Seq
 }
 
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag="type")]
+pub struct ResNetCfg{
+    c1: i64,
+    c2: i64,
+    c3: i64,
+    c4: i64,
+}
+
+impl ResNetCfg {
+    pub fn loads(json_str: &String) -> ResNetCfg {
+        serde_json::from_str(json_str).unwrap()
+    }
+    pub fn dumps(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+}
+
 #[derive(Debug)]
 pub struct ResNet{
     conv1: Conv2D,
@@ -59,18 +78,15 @@ pub struct ResNet{
 impl ResNet {
     pub fn new(
         p: &nn::Path,
-       c1: i64,
-       c2: i64,
-       c3: i64,
-       c4: i64,
+       cfg:&ResNetCfg,
     )->ResNet{
         ResNet{
             conv1: conv2d(p / "conv1", 3, 64, 7, 3, 2),
             bn1: nn::batch_norm2d(p / "bn1", 64, Default::default()),
-            layer1: basic_layer(p / "layer1", 64, 64, 1, c1),
-            layer2:  basic_layer(p / "layer2", 64, 128, 2, c2),
-            layer3: basic_layer(p / "layer3", 128, 256, 2, c3),
-            layer4: basic_layer(p / "layer4", 256, 512, 2, c4),
+            layer1: basic_layer(p / "layer1", 64, 64, 1, cfg.c1),
+            layer2:  basic_layer(p / "layer2", 64, 128, 2, cfg.c2),
+            layer3: basic_layer(p / "layer3", 128, 256, 2, cfg.c3),
+            layer4: basic_layer(p / "layer4", 256, 512, 2, cfg.c4),
         }
     }
 }

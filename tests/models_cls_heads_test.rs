@@ -7,11 +7,13 @@ use river::{
 };
 #[test]
 fn test_models_cls_heads_linear_head(){
-    const IN: i64 = 512;
-    const OUT:i64 = 2;
     use river::models::cls_heads::linear_head;
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    let net = linear_head::LinearClsHead::new(&vs.root(), IN, OUT);
-    let t = Tensor::zeros(&[1,IN], kind::FLOAT_CPU).to_device(vs.device());
+    let s = String::from("{\"in_channels\":512,\"num_classes\":2}");
+    let cfg:linear_head::LinearClsHeadCfg = linear_head::LinearClsHeadCfg::loads(&s);
+    let s_ = cfg.dumps();
+
+    let net = linear_head::LinearClsHead::new(&vs.root(), &cfg);
+    let t = Tensor::zeros(&[1,512], kind::FLOAT_CPU).to_device(vs.device());
     let o_ = net.forward_t(&t, true);
 }

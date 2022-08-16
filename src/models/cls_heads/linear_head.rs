@@ -3,6 +3,23 @@ use crate::{
     nn::Linear,
     Tensor,
 };
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(tag="type")]
+pub struct LinearClsHeadCfg{
+    in_channels:i64,
+    num_classes:i64
+}
+
+impl LinearClsHeadCfg {
+    pub fn loads(json_str: &String) -> LinearClsHeadCfg {
+        serde_json::from_str(json_str).unwrap()
+    }
+    pub fn dumps(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+}
 
 #[derive(Debug)]
 pub struct LinearClsHead{
@@ -12,11 +29,10 @@ pub struct LinearClsHead{
 impl LinearClsHead {
     pub fn new(
         p: &nn::Path,
-        in_channels:i64,
-        num_classes:i64
+        cfg: &LinearClsHeadCfg,
     )->LinearClsHead{
         LinearClsHead{
-            fc: nn::linear(p / "fc", in_channels, num_classes, Default::default())
+            fc: nn::linear(p / "fc", cfg.in_channels, cfg.num_classes, Default::default())
         }
     }
 }

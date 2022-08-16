@@ -13,7 +13,10 @@ fn test_models_backbones_resnet(){
     const B: i64 = 1;
     use river::models::backbones::resnet;
     let vs = nn::VarStore::new(Device::cuda_if_available());
-    let net = resnet::ResNet::new(&vs.root(), 2, 2, 2, 2);
+    let s = String::from("{\"c1\":2,\"c2\":2,\"c3\":2,\"c4\":2}");
+    let cfg:resnet::ResNetCfg = resnet::ResNetCfg::loads(&s);
+    let s_ = cfg.dumps();
+    let net = resnet::ResNet::new(&vs.root(), &cfg);
     let t = Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device());
     let o_ = net.forward_t(&t, true);
 }
