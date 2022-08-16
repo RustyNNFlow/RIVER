@@ -1,4 +1,3 @@
-extern crate river;
 use river::{
     Device,
     nn,
