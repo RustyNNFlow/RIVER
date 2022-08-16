@@ -6,7 +6,7 @@ use river::{
     nn::ModuleT,
 };
 #[test]
-fn test_linear_head(){
+fn test_models_classifier_image(){
     const W: i64 = 32;
     const H: i64 = 32;
     const C: i64 = 3;
@@ -15,5 +15,5 @@ fn test_linear_head(){
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = image::ImageClassifier::new(&vs.root());
     let t = Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device());
-    let o_ = net.forward_t(&t, true);
+    let _o = net.forward_t(&t, true);
 }

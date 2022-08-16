@@ -6,7 +6,7 @@ use river::{
     nn::ModuleT,
 };
 #[test]
-fn test_resnet(){
+fn test_models_backbones_resnet(){
     const W: i64 = 32;
     const H: i64 = 32;
     const C: i64 = 3;

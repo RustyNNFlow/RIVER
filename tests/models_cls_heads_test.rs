@@ -6,7 +6,7 @@ use river::{
     nn::ModuleT,
 };
 #[test]
-fn test_linear_head(){
+fn test_models_cls_heads_linear_head(){
     const IN: i64 = 512;
     const OUT:i64 = 2;
     use river::models::cls_heads::linear_head;

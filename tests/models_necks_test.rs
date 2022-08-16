@@ -6,7 +6,7 @@ use river::{
     nn::ModuleT,
 };
 #[test]
-fn test_gap(){
+fn test_models_necks_gap(){
     const W: i64 = 32;
     const H: i64 = 32;
     const C: i64 = 3;
