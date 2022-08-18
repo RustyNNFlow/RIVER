@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 #[serde(tag="type")]
 pub enum ClsInstanceData{
     Train {category:String},
-    Infer {category:String, score:f32},
+    Infer {category:String, score:f64},
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsGroupUsage{
@@ -36,5 +36,30 @@ impl ClsInstancesGroup{
     }
     pub fn image_width(&self)->i32{
         self.usage.image_width
+    }
+    pub fn new(
+        category:&String,
+        image_name:&String,
+        image_height:i32,
+        image_width:i32,
+        score:f64,
+    )->ClsInstancesGroup
+    {
+        let mut vec_data: Vec<ClsInstanceData>= Vec::new();
+        vec_data.push(
+            ClsInstanceData::Infer
+            {
+                category:category.clone(),
+                score:score,
+            }
+        );
+        ClsInstancesGroup{
+            data:vec_data,
+            usage:ClsGroupUsage{
+                image_name:image_name.clone(),
+                image_height:image_height,
+                image_width:image_width,
+            },
+        }
     }
 }

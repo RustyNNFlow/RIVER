@@ -31,4 +31,13 @@ impl ClsInstancesDataset {
     pub fn dump_to_file(&self, json_path: &String){
         serde_json::to_writer_pretty(&File::create(json_path).unwrap(), &self);
     }
+    pub fn new(
+        vec_ins_group:Vec<ClsInstancesGroup>,
+        dataset_name:String,
+    )->ClsInstancesDataset{
+        ClsInstancesDataset{
+            data:vec_ins_group,
+            usage:ClsDatasetUsage{dataset_name: dataset_name.clone()},
+        }
+    }
 }

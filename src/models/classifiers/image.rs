@@ -4,6 +4,7 @@ use crate::{
     models::cls_heads::linear_head,
     nn,
     Tensor,
+    Kind,
 };
 use serde::{Serialize, Deserialize};
 
@@ -53,9 +54,11 @@ impl ImageClassifier {
     pub fn simple_test(
         &self,
         xs: &Tensor,
-    )-> Tensor
+    )-> (Tensor, Tensor)
     {
-        nn::ModuleT::forward_t(self, xs, false).argmax(-1, false)
+        let scores = nn::ModuleT::forward_t(self, &xs, false).softmax(-1, Kind::Float);
+        let ids = scores.argmax(-1, false);
+        (scores, ids)
     }
 }
 
