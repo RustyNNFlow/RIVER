@@ -4,6 +4,7 @@ extern crate serde;
 pub mod addons;
 pub mod data;
 pub mod datasets;
+pub mod modules;
 
 mod error;
 pub use error::TchError;

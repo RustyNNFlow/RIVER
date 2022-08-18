@@ -7,7 +7,7 @@ use crate::{
 };
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag="type")]
 pub struct ImageClassifierCfg{
     backbone:resnet::ResNetCfg,
@@ -41,6 +41,21 @@ impl ImageClassifier {
             neck: gap::GlobalAveragePooling::new(p, &cfg.neck),
             head: linear_head::LinearClsHead::new(p, &cfg.head),
         }
+    }
+    pub fn forward_train(
+        &self,
+        xs: &Tensor,
+        ys:&Tensor,
+    )-> Tensor
+    {
+        nn::ModuleT::forward_t(self, xs, true).cross_entropy_for_logits(&ys)
+    }
+    pub fn simple_test(
+        &self,
+        xs: &Tensor,
+    )-> Tensor
+    {
+        nn::ModuleT::forward_t(self, xs, false).argmax(-1, false)
     }
 }
 

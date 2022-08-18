@@ -14,7 +14,7 @@ pub fn train() -> Result<()> {
     for epoch in 1..2 {
         let iter_len = m.train_iter(256).total_size();
         for (idx, (bimages, blabels)) in m.train_iter(256).shuffle().to_device(vs.device()).enumerate() {
-            let loss = net.forward_t(&bimages, true).cross_entropy_for_logits(&blabels);
+            let loss = net.forward_train(&bimages, &blabels);
             println!("epoch:{} iter:{}/{} loss: {:?}",epoch, idx, iter_len, loss);
             opt.backward_step(&loss);
             if idx >=100{
