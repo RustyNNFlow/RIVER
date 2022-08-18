@@ -35,6 +35,6 @@ fn test_instance_dataset_classification(){
     let _o = deserialized.dumps();
     let _dataset_name = deserialized.dataset_name();
 
-    deserialized.dump_to_file(&String::from("tmp.json"));
+    deserialized.dump_to_file(&std::env::temp_dir().join(format!("tmp.json")).into_os_string().into_string().unwrap());
 
 }
