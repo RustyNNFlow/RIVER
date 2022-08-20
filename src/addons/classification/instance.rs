@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag="type")]
 pub enum ClsInstanceData{
     Train {category:String},
@@ -12,7 +12,7 @@ pub struct ClsGroupUsage{
     image_height:i32,
     image_width:i32,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsInstancesGroup{
     data:Vec<ClsInstanceData>,
     usage:ClsGroupUsage,

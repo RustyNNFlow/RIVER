@@ -10,7 +10,7 @@ pub struct ClsDatasetUsage{
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ClsInstancesDataset{
-    data: Vec<ClsInstancesGroup>,
+    pub data: Vec<ClsInstancesGroup>,
     usage: ClsDatasetUsage,
 }
 
