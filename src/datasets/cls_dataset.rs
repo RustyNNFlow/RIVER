@@ -24,6 +24,11 @@ pub struct DatasetResult{
     pub img:Tensor,
     pub instances_group:ClsInstancesGroup,
 }
+impl DatasetResult{
+    pub fn group_name(&self)->String{
+        self.instances_group.group_name()
+    }
+}
 #[derive(Debug)]
 pub struct ClsDataset {
     pub map: HashMap<usize, ClsInstancesGroup>,
