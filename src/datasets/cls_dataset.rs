@@ -85,6 +85,9 @@ impl ClsDataset {
     pub fn get_info(&self, idx: usize)->Option<&ClsInstancesGroup>{
         self.map.get(&idx)
     }
+    pub fn len(&self)->usize{
+        self.map.len()
+    }
     pub fn prepare(&self, idx:usize)->Option<DatasetResult>{
         if let Some(ins) = self.get_info(idx){
             let name = ins.group_name();

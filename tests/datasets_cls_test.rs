@@ -11,7 +11,8 @@ fn test_classification_dataset(){
         Some(String::from("tests/assets/classification/dataset/train_anno.json")),
     );
     let o = obj.prepare(0);
-    println!("{:?}", o);
+    let s = obj.len();
+    println!("{:?} {:?}", o, s);
 
     let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
@@ -20,6 +21,7 @@ fn test_classification_dataset(){
         None,
     );
     let o = obj.prepare(0);
-    println!("{:?}", o);
+    let s = obj.len();
+    println!("{:?} {:?}", o, s);
 
 }
