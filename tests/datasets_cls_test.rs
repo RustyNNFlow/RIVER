@@ -11,6 +11,7 @@ fn test_classification_dataset_train(){
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
         &String::from("tests/assets/classification/dataset"),
         true,
+        true,
         Some(String::from("tests/assets/classification/dataset/train_anno.json")),
         Some(String::from("tests/assets/classification/dataset/category_info.json")),
     );
@@ -27,6 +28,7 @@ fn test_classification_dataset_test(){
     let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
         &String::from("tests/assets/classification/dataset"),
+        false,
         false,
         None,
         None,
@@ -45,14 +47,12 @@ fn test_classification_dataset_train_iter(){
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
         &String::from("tests/assets/classification/dataset"),
         true,
+        true,
         Some(String::from("tests/assets/classification/dataset/train_anno.json")),
         Some(String::from("tests/assets/classification/dataset/category_info.json")),
     );
-    let m = dataset_iter::DatasetIter::new(
-        obj,
-        1,
-    );
-    for (idx, (bimages, blabels, ins_groups)) in m.enumerate(){
+
+    for (idx, (bimages, blabels, ins_groups)) in obj.iter(1).enumerate(){
         println!("{} {:?} {:?} {:?}", idx, bimages, blabels, ins_groups);
     }
 
@@ -65,14 +65,11 @@ fn test_classification_dataset_test_iter(){
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
         &String::from("tests/assets/classification/dataset"),
         false,
+        false,
         None,
         None,
     );
-    let m = dataset_iter::DatasetIter::new(
-        obj,
-        1,
-    );
-    for (idx, (bimages, blabels, ins_groups)) in m.enumerate(){
+    for (idx, (bimages, blabels, ins_groups)) in obj.iter(1).enumerate(){
         println!("{} {:?} {:?} {:?}", idx, bimages, blabels, ins_groups);
     }
 

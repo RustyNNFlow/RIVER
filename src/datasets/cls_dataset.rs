@@ -1,8 +1,8 @@
 //! A simple dataset structure shared by various computer vision datasets.
 use crate::data::Iter2;
 use crate::{IndexOp, Tensor};
-use rand::Rng;
-
+use rand::{Rng};
+use rand::seq::SliceRandom;
 use std::collections::{
     HashMap,
     HashSet,
@@ -13,6 +13,7 @@ use crate::{
     vision::image as image_op,
     Kind,
     datasets::category_info,
+    datasets::dataset_iter,
 };
 
 use std::{
@@ -50,7 +51,7 @@ impl DatasetResult{
         Tensor::of_slice(&ys)
     }
 }
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ClsDataset {
     pub map: HashMap<usize, ClsInstancesGroup>,
     pub image_root:String,
@@ -62,6 +63,7 @@ impl ClsDataset {
         list_path:&String,
         image_root:&String,
         train:bool,
+        shuffle:bool,
         anno_path:Option<String>,
         category_info:Option<String>,
     ) -> ClsDataset {
@@ -69,7 +71,11 @@ impl ClsDataset {
         let mut file = File::open(&list_path).unwrap();
         let mut buff = String::new();
         file.read_to_string(&mut buff).unwrap();
-        let list:Vec<String> = serde_json::from_str(&buff).unwrap();
+        let mut list:Vec<String> = serde_json::from_str(&buff).unwrap();
+        if shuffle{
+            let mut rng = rand::thread_rng();
+            list.shuffle(&mut rng);
+        }
 
         let mut map: HashMap<usize, ClsInstancesGroup> = HashMap::new();
         let mut name_map: HashMap<String, ClsInstancesGroup> = HashMap::new();
@@ -139,6 +145,12 @@ impl ClsDataset {
             None
         }
 
+    }
+    pub fn iter(&self, batch_size: usize) -> dataset_iter::DatasetIter {
+        dataset_iter::DatasetIter::new(
+            self.clone(),
+            batch_size,
+        )
     }
 }
 
