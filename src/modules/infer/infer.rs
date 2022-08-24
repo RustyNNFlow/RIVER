@@ -80,6 +80,7 @@ impl ModuleInfer {
             image_list,
             &image_root,
             false,
+            false,
             None,
             None,
         );
