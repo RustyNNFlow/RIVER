@@ -9,6 +9,7 @@ fn test_classification_dataset(){
         &String::from("tests/assets/classification/dataset"),
         true,
         Some(String::from("tests/assets/classification/dataset/train_anno.json")),
+        Some(String::from("tests/assets/classification/dataset/category_info.json")),
     );
     let o = obj.prepare(0);
     let _s = obj.len();
@@ -22,6 +23,7 @@ fn test_classification_dataset(){
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
         &String::from("tests/assets/classification/dataset"),
         false,
+        None,
         None,
     );
     let o = obj.prepare(0);

@@ -12,6 +12,7 @@ use crate::{
     addons::classification::instance_dataset::ClsInstancesDataset,
     vision::image as image_op,
     Kind,
+    datasets::category_info,
 };
 
 use std::{
@@ -19,6 +20,8 @@ use std::{
     io::Read,
     path::Path,
 };
+
+
 #[derive(Debug)]
 pub struct DatasetResult{
     pub img:Tensor,
@@ -28,11 +31,30 @@ impl DatasetResult{
     pub fn group_name(&self)->String{
         self.instances_group.group_name()
     }
+    pub fn image_height(&self)->i32{
+        self.instances_group.image_height()
+    }
+    pub fn image_width(&self)->i32{
+        self.instances_group.image_width()
+    }
+    pub fn x(&self)->Tensor{
+        self.img.shallow_clone()
+    }
+    pub fn y(&self)->Tensor{
+        let mut ys:Vec<i64> = Vec::new();
+        for d in self.instances_group.data.iter(){
+            if let Some(s) = d.category_index{
+                ys.push(s);
+            }
+        }
+        Tensor::of_slice(&ys)
+    }
 }
 #[derive(Debug)]
 pub struct ClsDataset {
     pub map: HashMap<usize, ClsInstancesGroup>,
     pub image_root:String,
+    pub category_info: Option<category_info::CategoryInfo>,
 }
 
 impl ClsDataset {
@@ -41,6 +63,7 @@ impl ClsDataset {
         image_root:&String,
         train:bool,
         anno_path:Option<String>,
+        category_info:Option<String>,
     ) -> ClsDataset {
 
         let mut file = File::open(&list_path).unwrap();
@@ -50,14 +73,23 @@ impl ClsDataset {
 
         let mut map: HashMap<usize, ClsInstancesGroup> = HashMap::new();
         let mut name_map: HashMap<String, ClsInstancesGroup> = HashMap::new();
+
+        let category_info:Option<category_info::CategoryInfo> = match category_info {
+            Some(s)=>Some(category_info::CategoryInfo::load_by_file(&s)),
+            None=>None,
+        };
         if train {
             let anno_path = match anno_path{
                 Some(s)=>s,
                 None=>String::from(""),
             };
-            let dataset: ClsInstancesDataset = ClsInstancesDataset::load_by_file(&anno_path);
 
-            for data_single in dataset.data.iter() {
+            let mut dataset: ClsInstancesDataset = ClsInstancesDataset::load_by_file(&anno_path);
+
+            for data_single in dataset.data.iter_mut() {
+                if let Some(category_info) = category_info.clone() {
+                    data_single.update_category_index(category_info);
+                }
                 name_map.insert(data_single.group_name(), data_single.clone());
             }
         }
@@ -85,6 +117,7 @@ impl ClsDataset {
         ClsDataset{
             map:map,
             image_root:image_root.clone(),
+            category_info:category_info,
         }
     }
     pub fn get_info(&self, idx: usize)->Option<&ClsInstancesGroup>{
