@@ -1,11 +1,16 @@
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-#[serde(tag="type")]
-pub enum ClsInstanceData{
-    Train {category:String},
-    Infer {category:String, score:f64},
+pub struct  ClsInstanceData{
+    category:String,
+    score:Option<f64>,
+    category_index:Option<i64>,
 }
+
+// pub enum ClsInstanceData{
+//     Train {category:String},
+//     Infer {category:String, score:f64},
+// }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsGroupUsage{
     image_name:String,
@@ -47,10 +52,11 @@ impl ClsInstancesGroup{
     {
         let mut vec_data: Vec<ClsInstanceData>= Vec::new();
         vec_data.push(
-            ClsInstanceData::Infer
+            ClsInstanceData
             {
                 category:category.clone(),
-                score:score,
+                score:Some(score),
+                category_index:None,
             }
         );
         ClsInstancesGroup{
