@@ -1,16 +1,18 @@
 use serde::{Serialize, Deserialize};
+use crate::datasets::category_info;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct  ClsInstanceData{
     category:String,
     score:Option<f64>,
-    category_index:Option<i64>,
+    pub category_index:Option<i64>,
+}
+impl ClsInstanceData{
+    pub fn update_category_index(&mut self, index:i64){
+        self.category_index = Some(index);
+    }
 }
 
-// pub enum ClsInstanceData{
-//     Train {category:String},
-//     Infer {category:String, score:f64},
-// }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsGroupUsage{
     image_name:String,
@@ -19,7 +21,7 @@ pub struct ClsGroupUsage{
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsInstancesGroup{
-    data:Vec<ClsInstanceData>,
+    pub data:Vec<ClsInstanceData>,
     usage:ClsGroupUsage,
 }
 
@@ -41,6 +43,13 @@ impl ClsInstancesGroup{
     }
     pub fn image_width(&self)->i32{
         self.usage.image_width
+    }
+    pub fn update_category_index(&mut self, category_info: category_info::CategoryInfo){
+        for d in self.data.iter_mut(){
+            let idx=category_info.cat2id.get(&d.category).unwrap();
+            d.update_category_index(*idx);
+        }
+
     }
     pub fn new(
         category:&String,
