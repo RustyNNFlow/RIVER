@@ -39,7 +39,7 @@ fn test_classification_dataset_test(){
 }
 
 #[test]
-fn test_classification_dataset_iter(){
+fn test_classification_dataset_train_iter(){
 
     let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
@@ -52,8 +52,28 @@ fn test_classification_dataset_iter(){
         obj,
         1,
     );
-    for (idx, (bimages, blabels)) in m.enumerate(){
-        println!("{} {:?} {:?}",idx, bimages, blabels);
+    for (idx, (bimages, blabels, ins_groups)) in m.enumerate(){
+        println!("{} {:?} {:?} {:?}", idx, bimages, blabels, ins_groups);
+    }
+
+}
+
+#[test]
+fn test_classification_dataset_test_iter(){
+
+    let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
+        &String::from("tests/assets/classification/dataset/train_image_list.json"),
+        &String::from("tests/assets/classification/dataset"),
+        false,
+        None,
+        None,
+    );
+    let m = dataset_iter::DatasetIter::new(
+        obj,
+        1,
+    );
+    for (idx, (bimages, blabels, ins_groups)) in m.enumerate(){
+        println!("{} {:?} {:?} {:?}", idx, bimages, blabels, ins_groups);
     }
 
 }
