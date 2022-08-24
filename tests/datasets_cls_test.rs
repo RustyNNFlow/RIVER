@@ -1,9 +1,12 @@
 extern crate serde;
 extern crate anyhow;
-
+use river::datasets::{
+    cls_dataset,
+    dataset_iter,
+};
 #[test]
-fn test_classification_dataset(){
-    use river::datasets::cls_dataset;
+fn test_classification_dataset_train(){
+
     let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
         &String::from("tests/assets/classification/dataset"),
@@ -17,7 +20,9 @@ fn test_classification_dataset(){
         let _n = res.group_name();
     }
 
-
+}
+#[test]
+fn test_classification_dataset_test(){
 
     let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
         &String::from("tests/assets/classification/dataset/train_image_list.json"),
@@ -31,6 +36,24 @@ fn test_classification_dataset(){
     if let Some(res) = o{
         let _n = res.group_name();
     }
+}
 
+#[test]
+fn test_classification_dataset_iter(){
+
+    let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
+        &String::from("tests/assets/classification/dataset/train_image_list.json"),
+        &String::from("tests/assets/classification/dataset"),
+        true,
+        Some(String::from("tests/assets/classification/dataset/train_anno.json")),
+        Some(String::from("tests/assets/classification/dataset/category_info.json")),
+    );
+    let m = dataset_iter::DatasetIter::new(
+        obj,
+        1,
+    );
+    for (idx, (bimages, blabels)) in m.enumerate(){
+        println!("{} {:?} {:?}",idx, bimages, blabels);
+    }
 
 }
