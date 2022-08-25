@@ -16,8 +16,8 @@ impl ClsInstanceData{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsGroupUsage{
     image_name:String,
-    image_height:i32,
-    image_width:i32,
+    image_height:i64,
+    image_width:i64,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsInstancesGroup{
@@ -38,10 +38,10 @@ impl ClsInstancesGroup{
     pub fn instance_num(&self)->usize{
         self.data.len()
     }
-    pub fn image_height(&self)->i32{
+    pub fn image_height(&self)->i64{
         self.usage.image_height
     }
-    pub fn image_width(&self)->i32{
+    pub fn image_width(&self)->i64{
         self.usage.image_width
     }
     pub fn update_category_index(&mut self, category_info: category_info::CategoryInfo){
@@ -54,8 +54,8 @@ impl ClsInstancesGroup{
     pub fn new(
         category:&String,
         image_name:&String,
-        image_height:i32,
-        image_width:i32,
+        image_height:i64,
+        image_width:i64,
         score:f64,
     )->ClsInstancesGroup
     {
