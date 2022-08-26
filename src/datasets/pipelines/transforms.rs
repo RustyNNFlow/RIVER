@@ -2,6 +2,7 @@ use serde::{Serialize, Deserialize};
 use crate::{
     datasets::dataset_result,
     vision::image as image_op,
+    Kind,
 };
 use super::compose::TransformOps;
 
@@ -38,6 +39,31 @@ impl TransformOps for ResizeTorch{
         res_new.update_img(img_new);
         res_new.update_image_width(self.target_width);
         res_new.update_image_height(self.target_height);
+        res_new
+    }
+    fn repr(&self)->String{
+        String::from(format!("{:?}", self))
+    }
+}
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ToFloat{
+}
+impl ToFloat {
+    pub fn new() -> ToFloat {
+        ToFloat{}
+    }
+}
+#[typetag::serde]
+impl TransformOps for ToFloat{
+    fn call(
+        &self,
+        res:dataset_result::DatasetResult,
+    )->dataset_result::DatasetResult{
+        let mut res_new = res;
+
+        res_new.update_img(res_new.img.to_kind(Kind::Float));
         res_new
     }
     fn repr(&self)->String{

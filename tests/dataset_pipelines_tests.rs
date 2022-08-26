@@ -11,6 +11,18 @@ use river::{
 use serde::{Serialize, Deserialize};
 
 #[test]
+fn test_transforms_to_float(){
+    let img_root = String::from("tests/assets/classification/dataset");
+    let img_name = String::from("training/9/21842.jpg");
+    let d_r = DatasetResult::new(
+        &img_root,
+        &img_name,
+    );
+    let op = transforms::ToFloat::new();
+    let _res = op.call(d_r);
+}
+
+#[test]
 fn test_transforms_resize_torch(){
     let img_root = String::from("tests/assets/classification/dataset");
     let img_name = String::from("training/9/21842.jpg");
