@@ -3,6 +3,7 @@ use crate::{
     datasets::dataset_result,
     vision::image as image_op,
 };
+use super::compose::TransformOps;
 
 
 
@@ -11,17 +12,20 @@ pub struct ResizeTorch{
     target_height: i64,
     target_width: i64,
 }
-impl ResizeTorch{
+impl ResizeTorch {
     pub fn new(
         target_height: i64,
         target_width: i64,
-    )->ResizeTorch{
-        ResizeTorch{
+    ) -> ResizeTorch {
+        ResizeTorch {
             target_height: target_height,
             target_width: target_width,
         }
     }
-    pub fn call(
+}
+#[typetag::serde]
+impl TransformOps for ResizeTorch{
+    fn call(
         &self,
         res:dataset_result::DatasetResult,
     )->dataset_result::DatasetResult{
@@ -35,5 +39,8 @@ impl ResizeTorch{
         res_new.update_image_width(self.target_width);
         res_new.update_image_height(self.target_height);
         res_new
+    }
+    fn repr(&self)->String{
+        String::from(format!("{:?}", self))
     }
 }
