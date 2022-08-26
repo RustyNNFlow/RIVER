@@ -2,7 +2,6 @@ use serde::{Serialize, Deserialize};
 use super::instance::ClsInstancesGroup;
 use std::fs;
 use std::fs::File;
-use std::io::BufWriter;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClsDatasetUsage{

@@ -1,14 +1,10 @@
 //! Dataset iterators.
 use crate::{
-    kind,
-    kind::Kind,
     Device,
-    IndexOp,
     TchError,
     Tensor,
     addons::classification::instance,
 };
-use std::collections::HashMap;
 use super::cls_dataset::ClsDataset;
 
 #[derive(Debug)]
