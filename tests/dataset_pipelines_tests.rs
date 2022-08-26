@@ -9,6 +9,17 @@ use river::{
     datasets::pipelines::compose::Compose,
 };
 use serde::{Serialize, Deserialize};
+#[test]
+fn test_transforms_add_batch_dim(){
+    let img_root = String::from("tests/assets/classification/dataset");
+    let img_name = String::from("training/9/21842.jpg");
+    let d_r = DatasetResult::new(
+        &img_root,
+        &img_name,
+    );
+    let op = transforms::AddBatchDim::new();
+    let res = op.call(d_r);
+}
 
 #[test]
 fn test_transforms_to_float(){

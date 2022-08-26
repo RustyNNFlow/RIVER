@@ -70,3 +70,28 @@ impl TransformOps for ToFloat{
         String::from(format!("{:?}", self))
     }
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AddBatchDim{
+}
+impl AddBatchDim {
+    pub fn new() -> AddBatchDim {
+        AddBatchDim{}
+    }
+}
+#[typetag::serde]
+impl TransformOps for AddBatchDim{
+    fn call(
+        &self,
+        res:dataset_result::DatasetResult,
+    )->dataset_result::DatasetResult{
+        let mut res_new = res;
+        let mut size:Vec<i64> = res_new.img.size();
+        size.insert(0, 1);
+        res_new.update_img(res_new.img.view(size.as_slice()));
+        res_new
+    }
+    fn repr(&self)->String{
+        String::from(format!("{:?}", self))
+    }
+}
