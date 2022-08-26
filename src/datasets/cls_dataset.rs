@@ -1,12 +1,5 @@
-//! A simple dataset structure shared by various computer vision datasets.
-use crate::data::Iter2;
-use crate::{IndexOp, Tensor};
-use rand::{Rng};
+use serde::{Serialize, Deserialize};
 use rand::seq::SliceRandom;
-use std::collections::{
-    HashMap,
-    HashSet,
-};
 use crate::{
     addons::classification::instance::ClsInstancesGroup,
     addons::classification::instance_dataset::ClsInstancesDataset,
@@ -15,20 +8,25 @@ use crate::{
     datasets::category_info,
     datasets::dataset_iter,
     datasets::dataset_result,
+    datasets::pipelines::compose::TransformOps,
+    datasets::pipelines::compose::Compose,
 };
 
 use std::{
     fs::File,
     io::Read,
     path::Path,
+    fs,
+    collections::HashMap
 };
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClsDataset {
     pub map: HashMap<usize, ClsInstancesGroup>,
     pub image_root:String,
+    pub pipeline:Compose,
     pub category_info: Option<category_info::CategoryInfo>,
 }
 
@@ -36,6 +34,7 @@ impl ClsDataset {
     pub fn new(
         list_path:&String,
         image_root:&String,
+        pipeline:Compose,
         train:bool,
         shuffle:bool,
         anno_path:Option<String>,
@@ -50,6 +49,7 @@ impl ClsDataset {
             let mut rng = rand::thread_rng();
             list.shuffle(&mut rng);
         }
+
 
         let mut map: HashMap<usize, ClsInstancesGroup> = HashMap::new();
         let mut name_map: HashMap<String, ClsInstancesGroup> = HashMap::new();
@@ -97,6 +97,7 @@ impl ClsDataset {
         ClsDataset{
             map:map,
             image_root:image_root.clone(),
+            pipeline : pipeline,
             category_info:category_info,
         }
     }
@@ -125,6 +126,19 @@ impl ClsDataset {
             self.clone(),
             batch_size,
         )
+    }
+    pub fn loads(json_str: &String) -> ClsDataset {
+        serde_json::from_str(json_str).unwrap()
+    }
+    pub fn dumps(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+    pub fn load_by_file(json_path: &String) -> ClsDataset{
+        let data = fs::read_to_string(json_path).unwrap();
+        serde_json::from_str(&data).unwrap()
+    }
+    pub fn dump_to_file(&self, json_path: &String){
+        serde_json::to_writer_pretty(&File::create(json_path).unwrap(), &self);
     }
 }
 
