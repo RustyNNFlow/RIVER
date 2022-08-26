@@ -36,6 +36,15 @@ impl DatasetResult{
         }
         Tensor::of_slice(&ys)
     }
+    pub fn update_img(&mut self, img:Tensor){
+        self.img = img;
+    }
+    pub fn update_image_height(&mut self, image_height:i64){
+        self.instances_group.update_image_height(image_height);
+    }
+    pub fn update_image_width(&mut self, image_width:i64){
+        self.instances_group.update_image_width(image_width);
+    }
     pub fn new(
         img_root:&String,
         img_name:&String,
