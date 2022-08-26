@@ -1,11 +1,7 @@
 use crate::{
     Tensor,
     addons::classification::instance::ClsInstancesGroup,
-    addons::classification::instance_dataset::ClsInstancesDataset,
     vision::image as image_op,
-    Kind,
-    datasets::category_info,
-    datasets::dataset_iter,
 };
 use std::path::Path;
 

@@ -4,7 +4,6 @@ use crate::{
     addons::classification::instance::ClsInstancesGroup,
     addons::classification::instance_dataset::ClsInstancesDataset,
     vision::image as image_op,
-    Kind,
     datasets::category_info,
     datasets::dataset_iter,
     datasets::dataset_result,
@@ -112,9 +111,11 @@ impl ClsDataset {
             let name = ins.group_name();
             let path = Path::new(&self.image_root).join(&name);
             let mut img = image_op::load(path).unwrap();
+            let res = dataset_result::DatasetResult{img:img, instances_group:ins.clone()};
             //pipeline process
-            img = img.mean_dim(&[0], true, Kind::Float).view((1,1,28,28))/255.;
-            Some(dataset_result::DatasetResult{img:img, instances_group:ins.clone()})
+            Some(self.pipeline.call(res))
+            // img = img.mean_dim(&[0], true, Kind::Float).view((1,1,28,28))/255.;
+            // Some()
         }
         else{
             None
