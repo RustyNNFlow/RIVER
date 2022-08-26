@@ -110,7 +110,7 @@ impl ClsDataset {
         if let Some(ins) = self.get_info(idx){
             let name = ins.group_name();
             let path = Path::new(&self.image_root).join(&name);
-            let mut img = image_op::load(path).unwrap();
+            let img = image_op::load(path).unwrap();
             let res = dataset_result::DatasetResult{img:img, instances_group:ins.clone()};
             //pipeline process
             Some(self.pipeline.call(res))

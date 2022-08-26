@@ -1,26 +1,18 @@
 use crate::{
     nn,
-    nn::ModuleT,
-    nn::OptimizerConfig,
     Device,
-    Tensor,
-    data::Iter2,
-    models::classifiers::image,
-    tensor::index::IndexOp,
     addons::classification::instance,
     addons::classification::instance_dataset,
-    Kind,
-    vision::image as image_op,
+    models::classifiers::image,
     datasets::cls_dataset,
     datasets::category_info,
     datasets::dataset_iter,
+    datasets::pipelines::compose::Compose,
 };
 
 use serde::{Serialize, Deserialize};
 use std::{
-    collections::HashMap,
     path::PathBuf,
-    path::Path,
 };
 
 
@@ -72,6 +64,7 @@ impl ModuleInfer {
         &self,
         image_root:&String,
         image_list:&String,
+        pipeline:Compose,
         save_dir:&String,
         batch_size: usize,
     )
@@ -79,6 +72,7 @@ impl ModuleInfer {
         let dataset:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
             image_list,
             &image_root,
+            pipeline,
             false,
             false,
             None,
