@@ -51,6 +51,12 @@ impl ClsInstancesGroup{
         }
 
     }
+    pub fn update_image_height(&mut self, image_height:i64){
+        self.usage.image_height=image_height;
+    }
+    pub fn update_image_width(&mut self, image_width:i64){
+        self.usage.image_width=image_width;
+    }
     pub fn new(
         category:&String,
         image_name:&String,
