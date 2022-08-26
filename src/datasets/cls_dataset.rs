@@ -14,6 +14,7 @@ use crate::{
     Kind,
     datasets::category_info,
     datasets::dataset_iter,
+    datasets::dataset_result,
 };
 
 use std::{
@@ -23,34 +24,7 @@ use std::{
 };
 
 
-#[derive(Debug)]
-pub struct DatasetResult{
-    pub img:Tensor,
-    pub instances_group:ClsInstancesGroup,
-}
-impl DatasetResult{
-    pub fn group_name(&self)->String{
-        self.instances_group.group_name()
-    }
-    pub fn image_height(&self)->i32{
-        self.instances_group.image_height()
-    }
-    pub fn image_width(&self)->i32{
-        self.instances_group.image_width()
-    }
-    pub fn x(&self)->Tensor{
-        self.img.shallow_clone()
-    }
-    pub fn y(&self)->Tensor{
-        let mut ys:Vec<i64> = Vec::new();
-        for d in self.instances_group.data.iter(){
-            if let Some(s) = d.category_index{
-                ys.push(s);
-            }
-        }
-        Tensor::of_slice(&ys)
-    }
-}
+
 #[derive(Debug, Clone)]
 pub struct ClsDataset {
     pub map: HashMap<usize, ClsInstancesGroup>,
@@ -132,14 +106,14 @@ impl ClsDataset {
     pub fn len(&self)->usize{
         self.map.len()
     }
-    pub fn prepare(&self, idx:usize)->Option<DatasetResult>{
+    pub fn prepare(&self, idx:usize)->Option<dataset_result::DatasetResult>{
         if let Some(ins) = self.get_info(idx){
             let name = ins.group_name();
             let path = Path::new(&self.image_root).join(&name);
             let mut img = image_op::load(path).unwrap();
             //pipeline process
             img = img.mean_dim(&[0], true, Kind::Float).view((1,1,28,28))/255.;
-            Some(DatasetResult{img:img, instances_group:ins.clone()})
+            Some(dataset_result::DatasetResult{img:img, instances_group:ins.clone()})
         }
         else{
             None
