@@ -4,4 +4,4 @@ Reconstruct Intelligent Vision Engine with Rust
 
 ## System Architecture
 
-![](/Users/zhoujinghui/CLionProjects/RIVER/docs/assets/sys-arch.png)
+![]("https://github.com/RustyNNFlow/RIVER/blob/main/docs/assets/sys-arch.png" "Architecture Diagram")
