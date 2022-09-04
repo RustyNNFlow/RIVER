@@ -3,7 +3,7 @@
 ## Reconstruct Intelligent Vision Engine with Rust
 
 <p align="center">
- <img src="./docs/assets/robot-river.jpg">
+ <img src="./docs/assets/robot-river.jpeg">
 </p>
 
 - logo picture is created by text-to-image api . Page [deepai](https://deepai.org/machine-learning-model/text2img). Thanks to them.
