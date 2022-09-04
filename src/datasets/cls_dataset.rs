@@ -15,8 +15,9 @@ use std::{
     fs::File,
     io::Read,
     path::Path,
+    path::PathBuf,
     fs,
-    collections::HashMap
+    collections::HashMap,
 };
 
 
@@ -109,7 +110,13 @@ impl ClsDataset {
     pub fn prepare(&self, idx:usize)->Option<dataset_result::DatasetResult>{
         if let Some(ins) = self.get_info(idx){
             let name = ins.group_name();
-            let path = Path::new(&self.image_root).join(&name);
+            let vec: Vec<&str>  = name.split("/").collect();
+
+            let mut path_buf:PathBuf = PathBuf::new();
+            path_buf.push(self.image_root.clone());
+            path_buf.extend(&vec);
+            let path = path_buf.as_path();
+
             let img = image_op::load(path).unwrap();
             let res = dataset_result::DatasetResult{img:img, instances_group:ins.clone()};
             //pipeline process

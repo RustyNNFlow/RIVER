@@ -20,13 +20,13 @@ pub fn train() -> Result<()> {
     let pipeline = Compose::loads(&s);
 
     let dataset:cls_dataset::ClsDataset = cls_dataset::ClsDataset::new(
-        &String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg/train_image_list.json"),
-        &String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg"),
+        &String::from("E:\\mnist_jpg\\train_image_list.json"),
+        &String::from("E:\\mnist_jpg"),
         Compose::loads(&String::from("{\"transforms\":[{\"type\":\"ResizeTorch\",\"target_height\":28,\"target_width\":28},{\"type\":\"ToFloat\"},{\"type\":\"AddBatchDim\"}]}")),
         true,
         true,
-        Some(String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg/train_anno.json")),
-        Some(String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg/category_info.json")),
+        Some(String::from("E:\\mnist_jpg\\train_anno.json")),
+        Some(String::from("E:\\mnist_jpg\\category_info.json")),
     );
     let device = Device::cuda_if_available();
     let vs = nn::VarStore::new(device);
@@ -36,7 +36,7 @@ pub fn train() -> Result<()> {
     let mut opt = nn::Adam::default().build(&vs, 1e-4)?;
 
     for epoch in 1..2 {
-        for (idx, (bimages, blabels, ins_groups)) in dataset.iter(256).enumerate(){
+        for (idx, (bimages, blabels, ins_groups)) in dataset.iter(512).enumerate(){
             let bimages = bimages.to_device(device);
             let blabels = blabels.to_device(device);
             let loss = net.forward_train(&bimages, &blabels);
@@ -47,7 +47,7 @@ pub fn train() -> Result<()> {
             // }
         }
     }
-    let filename = PathBuf::from(String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg/final.ot"));
+    let filename = PathBuf::from(String::from("E:\\mnist_jpg\\final.ot"));
     vs.save(&filename).unwrap();
     println!("save checkpoint: {:?}",filename);
     Ok(())
@@ -57,16 +57,15 @@ pub fn test() -> Result<()> {
     let s = String::from("{\"transforms\":[{\"type\":\"ResizeTorch\",\"target_height\":28,\"target_width\":28},{\"type\":\"ToFloat\"},{\"type\":\"AddBatchDim\"}]}");
     let pipeline = Compose::loads(&s);
 
-    let image_list = String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg/test_image_list.json");
-    let image_root = String::from("/home/N3_3090U5/数据/项目数据集/mnist_jpg");
+    let image_list = String::from("E:\\mnist_jpg\\test_image_list.json");
+    let image_root = String::from("E:\\mnist_jpg");
     let save_dir =
         std::env::temp_dir()
             .join(format!("tmp.json"))
             .into_os_string().into_string().unwrap();
 
     let mut vs = nn::VarStore::new(Device::cuda_if_available());
-    let s = String::from("{\"model_config\":{\"backbone\":{\"c1\":2,\"c2\":2,\"c3\":2,\"c4\":2,\"in_channels\":3},\"neck\":{},\"head\":{\"in_channels\":512,\"num_classes\":10}},\"checkpoint_path\":\"/home/N3_3090U5/数据/项目数据集/mnist_jpg/final.ot\",\"category_info\":{\"id2cat\":{\"0\":\"0\",\"1\":\"1\",\"2\":\"2\",\"3\":\"3\",\"4\":\"4\",\"5\":\"5\",\"6\":\"6\",\"7\":\"7\",\"8\":\"8\",\"9\":\"9\"},\"cat2id\":{\"0\":0,\"1\":1,\"2\":2,\"3\":3,\"4\":4,\"5\":5,\"6\":6,\"7\":7,\"8\":8,\"9\":9}},\"batch_size\":32}");
-
+    let s = String::from("{\"model_config\":{\"backbone\":{\"c1\":2,\"c2\":2,\"c3\":2,\"c4\":2,\"in_channels\":3},\"neck\":{},\"head\":{\"in_channels\":512,\"num_classes\":10}},\"checkpoint_path\":\"E:\\\\mnist_jpg\\\\final.ot\",\"category_info\":{\"id2cat\":{\"0\":\"0\",\"1\":\"1\",\"2\":\"2\",\"3\":\"3\",\"4\":\"4\",\"5\":\"5\",\"6\":\"6\",\"7\":\"7\",\"8\":\"8\",\"9\":\"9\"},\"cat2id\":{\"0\":0,\"1\":1,\"2\":2,\"3\":3,\"4\":4,\"5\":5,\"6\":6,\"7\":7,\"8\":8,\"9\":9}},\"batch_size\":32}");
     let cfg:infer::ModuleInferCfg=infer::ModuleInferCfg::loads(&String::from(s));
 
     let infer_obj = infer::ModuleInfer::new(&vs.root(), &cfg);
@@ -81,6 +80,6 @@ pub fn test() -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    train();
+    // train();
     test()
 }
