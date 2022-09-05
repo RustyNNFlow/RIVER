@@ -1,0 +1,16 @@
+{
+	"usage": {
+		"dataset_name": "mnist"
+	},
+	"data": [{
+		"data": [{
+			"type": "Train",
+			"category": "9"
+		}],
+		"usage": {
+			"image_name": "training/9/21842.jpg",
+			"image_height": 28,
+			"image_width": 28
+		}
+	}]
+}

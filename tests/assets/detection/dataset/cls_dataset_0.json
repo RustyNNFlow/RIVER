@@ -1,0 +1,50 @@
+{
+  "map": {
+    "0": {
+      "data": [{
+        "category": "9",
+        "score": null,
+        "category_index": 9
+      }],
+      "usage": {
+        "image_name": "training/9/21842.jpg",
+        "image_height": 28,
+        "image_width": 28
+      }
+    }
+  },
+  "image_root": "tests/assets/classification/dataset",
+  "pipeline": {
+    "transforms": [{
+      "type": "ResizeTorch",
+      "target_height": 28,
+      "target_width": 28
+    }]
+  },
+  "category_info": {
+    "id2cat": {
+      "7": "7",
+      "8": "8",
+      "3": "3",
+      "0": "0",
+      "1": "1",
+      "4": "4",
+      "2": "2",
+      "9": "9",
+      "6": "6",
+      "5": "5"
+    },
+    "cat2id": {
+      "4": 4,
+      "5": 5,
+      "2": 2,
+      "3": 3,
+      "1": 1,
+      "6": 6,
+      "8": 8,
+      "9": 9,
+      "7": 7,
+      "0": 0
+    }
+  }
+}

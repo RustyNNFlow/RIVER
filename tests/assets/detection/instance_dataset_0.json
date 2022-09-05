@@ -1,0 +1,22 @@
+{
+  "data": [{
+    "data": [{
+      "category": "修勾",
+      "bbox": {
+        "x1": 1.0,
+        "y1": 2.0,
+        "x2": 3.0,
+        "y2": 4.0
+      },
+      "score": 0.1
+    }],
+    "usage": {
+      "image_height": 1,
+      "image_name": "",
+      "image_width": 1
+    }
+  }],
+  "usage": {
+    "dataset_name": "1"
+  }
+}

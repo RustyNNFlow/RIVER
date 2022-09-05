@@ -1,0 +1,7 @@
+{
+  "transforms": [{
+    "type": "ResizeTorch",
+    "target_height": 14,
+    "target_width": 14
+  }]
+}
