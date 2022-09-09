@@ -43,6 +43,9 @@ pub use optimizer::{
     adam, adamw, rms_prop, sgd, Adam, AdamW, Optimizer, OptimizerConfig, RmsProp, Sgd,
 };
 
+mod scale;
+pub use scale::*;
+
 /// An identity layer. This just propagates its tensor input as output.
 #[derive(Debug)]
 pub struct Id();
