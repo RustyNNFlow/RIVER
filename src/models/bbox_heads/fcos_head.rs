@@ -183,6 +183,21 @@ impl FCOSHead {
             heads:heads,
         }
     }
+    pub fn forward(
+            &self,
+            xs:Vec<Tensor>,
+            train: bool,
+        )->Vec<Tensor>{
+        let n = self.heads.len();
+        assert_eq!(n, xs.len());
+        let mut outs: Vec<Tensor>=Vec::new();
+        for i in 0..n{
+            let x = &xs[i];
+            let y = x.apply_t(&self.heads[i],  train);
+            outs.push(y);
+        }
+        outs
+    }
 }
 
 // impl nn::ModuleT for FCOSHead {

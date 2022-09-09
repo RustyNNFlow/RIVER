@@ -23,8 +23,8 @@ fn test_models_bbox_head_single(){
 
 #[test]
 fn test_models_bbox_heads(){
-    const W: i64 = 32;
-    const H: i64 = 32;
+    const W: [i64; 3] = [32, 64, 128];
+    const H: [i64; 3] = [32, 64, 128];
     const C: i64 = 512;
     const B: i64 = 1;
 
@@ -32,5 +32,10 @@ fn test_models_bbox_heads(){
     let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
-    let n_ = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+    let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+    let mut ts: Vec<Tensor> = Vec::new();
+    for i in 0..3{
+        ts.push(Tensor::zeros(&[B,C,H[i],W[i]], kind::FLOAT_CPU).to_device(vs.device()));
+    }
+    let os_ = n.forward(ts, true);
 }
