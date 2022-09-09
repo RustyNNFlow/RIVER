@@ -5,6 +5,8 @@ use crate::{
     nn::ModuleT,
     nn::BatchNorm,
     nn::SequentialT,
+    nn::Init,
+    nn::Scale,
     Tensor,
 };
 use serde::{Serialize, Deserialize};
@@ -67,6 +69,7 @@ pub struct FCOSHeadSingle{
     hybrid_convs:SequentialT,
     fcos_cls:Conv2D,
     fcos_reg:Conv2D,
+    scale:Scale,
 }
 
 impl FCOSHeadSingle {
@@ -113,10 +116,13 @@ impl FCOSHeadSingle {
                 1,
         );
 
+        let scale_cfg = nn::ScaleConfig::default();
+        let scale = nn::scale(p, scale_cfg);
         FCOSHeadSingle{
             hybrid_convs: hybrid_convs,
             fcos_cls: fcos_cls,
             fcos_reg: fcos_reg,
+            scale:scale,
         }
     }
 }
@@ -126,7 +132,7 @@ impl nn::ModuleT for FCOSHeadSingle {
         let feat=xs.apply_t(&self.hybrid_convs, train);
         let mut outs:Vec<Tensor> = Vec::new();
         outs.push(feat.apply_t(&self.fcos_cls, train));
-        outs.push(feat.apply_t(&self.fcos_reg, train));
+        outs.push(feat.apply_t(&self.fcos_reg, train).apply_t(&self.scale, train).exp());
         Tensor::cat(&outs, 1)
     }
 }
