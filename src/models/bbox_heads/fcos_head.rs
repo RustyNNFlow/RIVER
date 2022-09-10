@@ -78,6 +78,7 @@ impl FCOSHeadSingle {
                 3,
                 1,
                 1,
+                true,
                 )
             );
         }
