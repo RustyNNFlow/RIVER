@@ -46,6 +46,9 @@ pub use optimizer::{
 mod scale;
 pub use scale::*;
 
+mod activation;
+pub use activation::*;
+
 /// An identity layer. This just propagates its tensor input as output.
 #[derive(Debug)]
 pub struct Id();
