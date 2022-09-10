@@ -56,6 +56,7 @@ impl BiFPNModule {
                             3,
                             1,
                             1,
+                            true,
                         )
                     )
                 );
@@ -131,3 +132,104 @@ impl BiFPNModule {
 
 
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(tag="type")]
+pub struct BiFPNCfg{
+    in_channels:Vec<i64>,
+    out_channel:i64,
+    num_outs:i64,
+    start_level:i64,
+    end_level:i64,
+    stack:i64,
+    add_extra_convs:bool,
+    extra_convs_on_inputs:bool,
+    relu_before_extra_convs:bool,
+    no_norm_on_lateral:bool,
+}
+
+impl BiFPNCfg {
+    pub fn loads(json_str: &String) -> BiFPNCfg {
+        serde_json::from_str(json_str).unwrap()
+    }
+    pub fn dumps(&self) -> String {
+        serde_json::to_string(&self).unwrap()
+    }
+}
+#[derive(Debug)]
+pub struct BiFPN{
+    lateral_convs:Vec<SequentialT>,
+    stack_bifpn_convs:Vec<BiFPNModule>,
+    fpn_convs:SequentialT,
+}
+
+impl BiFPN {
+    pub fn new(
+        p: &nn::Path,
+        cfg: &BiFPNCfg,
+    )->BiFPN{
+        let num_ins=cfg.in_channels.len() as i64;
+        let backbone_end_level= match cfg.end_level {
+            -1=> num_ins - cfg.start_level,
+            _=>cfg.end_level,
+        };
+
+        let mut lateral_convs: Vec<SequentialT> = Vec::new();
+        for i in cfg.start_level..backbone_end_level{
+            lateral_convs.push(
+                conv_module(
+                    p,
+                    cfg.in_channels[i as usize],
+                    cfg.out_channel,
+                    1,
+                    1,
+                    0,
+                    true,
+                )
+            );
+        }
+        let mut stack_bifpn_convs:Vec<BiFPNModule> = Vec::new();
+        for _ in 0..cfg.stack{
+            let bifpn_module_cfg = BiFPNModuleCfg{
+                channels:cfg.out_channel,
+                levels:backbone_end_level - cfg.start_level,
+            };
+            stack_bifpn_convs.push(
+                BiFPNModule::new(
+                    p,
+                    &bifpn_module_cfg,
+                )
+            );
+        }
+        let extra_levels=cfg.num_outs - backbone_end_level + cfg.start_level;
+        let mut fpn_convs=nn::seq_t();
+        if cfg.add_extra_convs&&extra_levels>=1{
+            for i in 0..extra_levels {
+                let mut in_channel=0;
+                if i == 0 && cfg.extra_convs_on_inputs{
+                    in_channel = cfg.in_channels[(backbone_end_level-1) as usize];
+                }
+                else {
+                    in_channel = cfg.out_channel
+                }
+                fpn_convs=fpn_convs.add(
+                    conv_module(
+                        p,
+                        in_channel,
+                        cfg.out_channel,
+                        3,
+                        2,
+                        1,
+                        true,
+                    )
+                );
+            }
+        }
+
+
+        BiFPN{
+            lateral_convs:lateral_convs,
+            stack_bifpn_convs:stack_bifpn_convs,
+            fpn_convs:fpn_convs,
+        }
+    }
+}
