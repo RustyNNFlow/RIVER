@@ -8,27 +8,12 @@ use crate::{
     nn::Init,
     nn::Scale,
     Tensor,
+    models::utils::conv_module::conv_module,
+    models::utils::conv_2d::conv2d,
 };
 use serde::{Serialize, Deserialize};
 
-fn conv2d(p: nn::Path, c_in: i64, c_out: i64, ksize: i64, padding: i64, stride: i64) -> Conv2D {
-    let conv2d_cfg = nn::ConvConfig { stride, padding, bias: false, ..Default::default() };
-    nn::conv2d(&p, c_in, c_out, ksize, conv2d_cfg)
-}
 
-fn conv_module(
-    p: &nn::Path,
-    c_in:i64,
-    c_out:i64,
-    ksize:i64,
-    stride:i64,
-    padding:i64,
-)
-    ->SequentialT {
-    nn::seq_t()
-        .add(conv2d(p / "conv", c_in, c_out, ksize, padding, stride))
-        .add(nn::batch_norm2d(p / "bn", c_out, Default::default()))
-}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag="type")]
