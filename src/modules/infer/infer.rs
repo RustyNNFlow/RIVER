@@ -87,7 +87,7 @@ impl ModuleInfer {
         let mut vec_ins_group:Vec<instance::ClsInstancesGroup>=Vec::new();
 
 
-        for (idx, (bimages, blabels, ins_groups)) in iter.enumerate(){
+        for (_, (bimages, _, ins_groups)) in iter.enumerate(){
             let (scores, ids) = self.model.simple_test(&bimages.to_device(self.device));
             let size = ids.size()[0];
             for index in 0..size {
