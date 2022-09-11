@@ -15,8 +15,9 @@ fn test_models_necks_gap(){
     let cfg = gap::GlobalAveragePoolingCfg{};
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let net = gap::GlobalAveragePooling::new(&vs.root(), &cfg);
-    let t = Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device());
-    let o_ = net.forward_t(&t, true);
+    let mut ts:Vec<Tensor>=Vec::new();
+    ts.push(Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device()));
+    let o_ = net.forward_t(&ts, true);
 }
 
 #[test]

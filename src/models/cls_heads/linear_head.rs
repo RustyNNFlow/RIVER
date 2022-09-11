@@ -35,10 +35,7 @@ impl LinearClsHead {
             fc: nn::linear(p / "fc", cfg.in_channels, cfg.num_classes, Default::default())
         }
     }
-}
-
-impl nn::ModuleT for LinearClsHead {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.apply_t(&self.fc, train)
+    pub fn forward_t(&self, xs: &Vec<Tensor>, train: bool) -> Tensor {
+        xs[xs.len()-1].apply_t(&self.fc, train)
     }
 }

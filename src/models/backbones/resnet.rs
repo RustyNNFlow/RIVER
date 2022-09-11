@@ -50,11 +50,13 @@ fn basic_layer(p: nn::Path, c_in: i64, c_out: i64, stride: i64, cnt: i64) -> Seq
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(tag="type")]
 pub struct ResNetCfg{
-    c1: i64,
-    c2: i64,
-    c3: i64,
-    c4: i64,
-    in_channels:i64,
+    depth:i64,
+    counts: Vec<i64>,
+    in_channel:i64,
+    stem_channel:i64,
+    base_channel:i64,
+    out_indices:Vec<i64>,
+    num_stages:i64,
 }
 
 impl ResNetCfg {
@@ -70,10 +72,8 @@ impl ResNetCfg {
 pub struct ResNet{
     conv1: Conv2D,
     bn1: BatchNorm,
-    layer1: SequentialT,
-    layer2: SequentialT,
-    layer3: SequentialT,
-    layer4: SequentialT,
+    stage_blocks: Vec<SequentialT>,
+    out_indices:Vec<i64>,
 }
 
 impl ResNet {
@@ -81,26 +81,58 @@ impl ResNet {
         p: &nn::Path,
        cfg:&ResNetCfg,
     )->ResNet{
+        let arch_settings:Vec<i64> = match cfg.depth {
+            18=>[2, 2, 2, 2].to_vec(),
+            34|50=>[3, 4, 6, 3].to_vec(),
+            101=>[3, 4, 23, 3].to_vec(),
+            152=>[3, 8, 36, 3].to_vec(),
+            _=>[2, 2, 2, 2].to_vec(),
+        };
+        let strides = [1, 2, 2, 2];
+        let mut stage_counts:Vec<i64> = Vec::new();
+        for i in 0..cfg.num_stages{
+            stage_counts.push(
+                arch_settings[i as usize]
+            );
+        }
+        let mut stage_blocks:Vec<SequentialT>=Vec::new();
+        let mut inplanes=cfg.base_channel;
+        let mut planes;
+        for (i,c) in stage_counts.iter().enumerate(){
+            planes = cfg.base_channel * 2_i64.pow(i as u32);
+            println!("{} {}",inplanes, planes);
+            stage_blocks.push(
+                basic_layer(
+                    p / format!("layer{}", i+1),
+                    inplanes,
+                    planes,
+                    strides[i],
+                    *c),
+            );
+            inplanes = planes;
+        }
+
         ResNet{
-            conv1: conv2d(p / "conv1", cfg.in_channels, 64, 7, 3, 2),
+            conv1: conv2d(p / "conv1", cfg.in_channel, cfg.stem_channel, 7, 3, 2),
             bn1: nn::batch_norm2d(p / "bn1", 64, Default::default()),
-            layer1: basic_layer(p / "layer1", 64, 64, 1, cfg.c1),
-            layer2:  basic_layer(p / "layer2", 64, 128, 2, cfg.c2),
-            layer3: basic_layer(p / "layer3", 128, 256, 2, cfg.c3),
-            layer4: basic_layer(p / "layer4", 256, 512, 2, cfg.c4),
+            stage_blocks:stage_blocks,
+            out_indices:cfg.out_indices.clone(),
         }
     }
-}
-
-impl nn::ModuleT for ResNet {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.apply(&self.conv1)
+    pub fn forward_t(&self, xs: &Tensor, train: bool) -> Vec<Tensor> {
+        let mut x = xs.apply(&self.conv1)
             .apply_t(&self.bn1, train)
             .relu()
-            .max_pool2d(&[3, 3], &[2, 2], &[1, 1], &[1, 1], false)
-            .apply_t(&self.layer1, train)
-            .apply_t(&self.layer2, train)
-            .apply_t(&self.layer3, train)
-            .apply_t(&self.layer4, train)
+            .max_pool2d(&[3, 3], &[2, 2], &[1, 1], &[1, 1], false);
+        let mut outs:Vec<Tensor>=Vec::new();
+        for i in 0..self.stage_blocks.len(){
+            x = x.apply_t(&self.stage_blocks[i], train);
+            if self.out_indices.iter().any(|&index| index==(i as i64)) {
+                outs.push(
+                    x.copy()
+                );
+            }
+        }
+        outs
     }
 }

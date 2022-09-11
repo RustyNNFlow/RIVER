@@ -28,11 +28,15 @@ impl GlobalAveragePooling {
     )->GlobalAveragePooling{
         GlobalAveragePooling{}
     }
-}
-
-impl nn::ModuleT for GlobalAveragePooling {
-    fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
-        xs.adaptive_avg_pool2d(&[1, 1])
+    pub fn forward_t(&self, xs: &Vec<Tensor>, train: bool) -> Vec<Tensor> {
+        let mut outs:Vec<Tensor> = Vec::new();
+        outs.push(
+            xs[xs.len()-1].adaptive_avg_pool2d(&[1, 1])
             .flat_view()
+        );
+        outs
     }
 }
+
+
+
