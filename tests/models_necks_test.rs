@@ -49,10 +49,12 @@ fn test_models_necks_bifpn(){
     let s = String::from("{\"in_channels\":[128, 256, 512],\"out_channel\":128,\"num_outs\":3,\"start_level\":0,\"end_level\":-1,\"stack\":1,\"add_extra_convs\":false,\"extra_convs_on_inputs\":true,\"relu_before_extra_convs\":false,\"no_norm_on_lateral\":false}");
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:bifpn::BiFPNCfg = bifpn::BiFPNCfg::loads(&s);
-    // let n = bifpn::BiFPNModule::new(&vs.root(), &cfg);
+
     let mut ts: Vec<Tensor> = Vec::new();
     for i in 0..3{
         ts.push(Tensor::zeros(&[B,C[i],H[i],W[i]], kind::FLOAT_CPU).to_device(vs.device()));
     }
+    let n = bifpn::BiFPN::new(&vs.root(), &cfg);
+    let o_ = n.forward(ts, true);
 
 }

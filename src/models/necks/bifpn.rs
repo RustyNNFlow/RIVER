@@ -159,7 +159,12 @@ impl BiFPNCfg {
 pub struct BiFPN{
     lateral_convs:Vec<SequentialT>,
     stack_bifpn_convs:Vec<BiFPNModule>,
-    fpn_convs:SequentialT,
+    fpn_convs:Vec<SequentialT>,
+    num_outs:i64,
+    add_extra_convs:bool,
+    extra_convs_on_inputs:bool,
+    backbone_end_level:i64,
+    relu_before_extra_convs:bool,
 }
 
 impl BiFPN {
@@ -201,7 +206,8 @@ impl BiFPN {
             );
         }
         let extra_levels=cfg.num_outs - backbone_end_level + cfg.start_level;
-        let mut fpn_convs=nn::seq_t();
+        let mut fpn_convs:Vec<SequentialT>=Vec::new();
+
         if cfg.add_extra_convs&&extra_levels>=1{
             for i in 0..extra_levels {
                 let mut in_channel=0;
@@ -211,7 +217,7 @@ impl BiFPN {
                 else {
                     in_channel = cfg.out_channel
                 }
-                fpn_convs=fpn_convs.add(
+                fpn_convs.push(
                     conv_module(
                         p,
                         in_channel,
@@ -230,6 +236,71 @@ impl BiFPN {
             lateral_convs:lateral_convs,
             stack_bifpn_convs:stack_bifpn_convs,
             fpn_convs:fpn_convs,
+            num_outs:cfg.num_outs,
+            add_extra_convs:cfg.add_extra_convs,
+            extra_convs_on_inputs:cfg.extra_convs_on_inputs,
+            backbone_end_level:backbone_end_level,
+            relu_before_extra_convs:cfg.relu_before_extra_convs,
         }
+    }
+    pub fn forward(&self, mut xs: Vec<Tensor>, train: bool) -> Vec<Tensor> {
+        let mut laterals: Vec<Tensor> = Vec::new();
+        for i in 0..self.lateral_convs.len(){
+            laterals.push(
+                xs[i].apply_t(&self.lateral_convs[i], train)
+            );
+        }
+        let used_backbone_levels = laterals.len();
+        for i in 0..self.stack_bifpn_convs.len(){
+            laterals = self.stack_bifpn_convs[i].forward(laterals, train);
+        }
+        let mut outs = laterals;
+        //use max pool to get more levels on top of outputs
+        if self.num_outs > outs.len() as i64{
+            if !self.add_extra_convs{
+                for i in 0..(self.num_outs - used_backbone_levels as i64){
+                    outs.push(
+                        outs[outs.len()-1].max_pool2d(&[1, 1], &[2, 2], &[0, 0], &[1, 1], false)
+                    )
+                }
+            }
+            else {
+                if self.extra_convs_on_inputs{
+                    outs.push(
+                        xs[self.backbone_end_level as usize -1].apply_t(
+                            &self.fpn_convs[0],
+                            train,
+                        )
+                    );
+                }
+                else {
+                    outs.push(
+                        outs[outs.len()-1].apply_t(
+                            &self.fpn_convs[0],
+                            train,
+                        )
+                    );
+                }
+                for i in 1..(self.num_outs-used_backbone_levels as i64){
+                    if self.relu_before_extra_convs{
+                        outs.push(
+                          outs[outs.len()-1].relu().apply_t(
+                                &self.fpn_convs[i as usize],
+                                train,
+                            )
+                        );
+                    }
+                    else {
+                        outs.push(
+                            outs[outs.len()-1].apply_t(
+                                &self.fpn_convs[i as usize],
+                                train,
+                            )
+                        );
+                    }
+                }
+            }
+        }
+        outs
     }
 }
