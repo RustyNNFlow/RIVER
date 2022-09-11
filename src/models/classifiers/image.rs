@@ -65,9 +65,7 @@ impl ImageClassifier {
 impl nn::ModuleT for ImageClassifier {
     fn forward_t(&self, xs: &Tensor, train: bool) -> Tensor {
         let xs = &self.backbone.forward_t(xs, train);
-        println!("{:?}", xs);
         let xs = &self.neck.forward_t(xs, train);
-        println!("{:?}", xs);
         self.head.forward_t(xs, train)
     }
 }

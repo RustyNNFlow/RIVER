@@ -100,7 +100,6 @@ impl ResNet {
         let mut planes;
         for (i,c) in stage_counts.iter().enumerate(){
             planes = cfg.base_channel * 2_i64.pow(i as u32);
-            println!("{} {}",inplanes, planes);
             stage_blocks.push(
                 basic_layer(
                     p / format!("layer{}", i+1),
