@@ -56,6 +56,6 @@ fn test_models_necks_bifpn(){
         ts.push(Tensor::zeros(&[B,C[i],H[i],W[i]], kind::FLOAT_CPU).to_device(vs.device()));
     }
     let n = bifpn::BiFPN::new(&vs.root(), &cfg);
-    let o_ = n.forward(ts, true);
+    let o_ = n.forward_t(&ts, true);
 
 }

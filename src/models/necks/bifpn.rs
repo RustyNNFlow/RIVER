@@ -243,7 +243,7 @@ impl BiFPN {
             relu_before_extra_convs:cfg.relu_before_extra_convs,
         }
     }
-    pub fn forward(&self, mut xs: Vec<Tensor>, train: bool) -> Vec<Tensor> {
+    pub fn forward_t(&self, xs: &Vec<Tensor>, train: bool) -> Vec<Tensor> {
         let mut laterals: Vec<Tensor> = Vec::new();
         for i in 0..self.lateral_convs.len(){
             laterals.push(

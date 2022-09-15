@@ -169,9 +169,9 @@ impl FCOSHead {
             heads:heads,
         }
     }
-    pub fn forward(
+    pub fn forward_t(
             &self,
-            xs:Vec<Tensor>,
+            xs:&Vec<Tensor>,
             train: bool,
         )->Vec<Tensor>{
         let n = self.heads.len();

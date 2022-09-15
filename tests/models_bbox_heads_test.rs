@@ -37,5 +37,5 @@ fn test_models_bbox_heads(){
     for i in 0..3{
         ts.push(Tensor::zeros(&[B,C,H[i],W[i]], kind::FLOAT_CPU).to_device(vs.device()));
     }
-    let os_ = n.forward(ts, true);
+    let os_ = n.forward_t(&ts, true);
 }
