@@ -54,3 +54,17 @@ fn test_models_bbox_head_get_points_single(){
 
     let o_ = n.get_points_single(H, W, S);
 }
+#[test]
+fn test_models_bbox_head_get_points(){
+    const W: [i64; 3] = [32, 64, 128];
+    const H: [i64; 3] = [64, 128, 256];
+    const S: [i64; 3] = [32, 16, 8];
+
+    use river::models::bbox_heads::fcos_head;
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
+    let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+
+    let o_ = n.get_points(H.to_vec(), W.to_vec(), S.to_vec());
+}

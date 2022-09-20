@@ -204,6 +204,27 @@ impl FCOSHead {
         points
 
     }
+    pub fn get_points(
+        &self,
+        vec_height:Vec<i64>,
+        vec_width:Vec<i64>,
+        vec_stride:Vec<i64>,
+    )->Vec<Tensor>{
+        let n:usize = vec_stride.len();
+        assert_eq!(n, vec_height.len());
+        assert_eq!(n, vec_width.len());
+        let mut vec_points:Vec<Tensor> = Vec::new();
+        for i in 0..n{
+            vec_points.push(
+                self.get_points_single(
+                    vec_height[i],
+                    vec_width[i],
+                    vec_stride[i],
+                )
+            );
+        }
+        vec_points
+    }
     // pub fn fcos_target(
     //     &self,
     // )->Vec<Tensor>{
