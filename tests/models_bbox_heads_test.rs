@@ -39,3 +39,18 @@ fn test_models_bbox_heads(){
     }
     let os_ = n.forward_t(&ts, true);
 }
+
+#[test]
+fn test_models_bbox_head_get_points_single(){
+    const W: i64 = 512;
+    const H: i64 = 128;
+    const S: i64 = 32;
+
+    use river::models::bbox_heads::fcos_head;
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
+    let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+
+    let o_ = n.get_points_single(H, W, S);
+}

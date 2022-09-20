@@ -10,6 +10,8 @@ use crate::{
     Tensor,
     models::utils::conv_module::conv_module,
     models::utils::conv_2d::conv2d,
+    kind,
+    Device,
 };
 use serde::{Serialize, Deserialize};
 
@@ -184,6 +186,29 @@ impl FCOSHead {
         }
         outs
     }
+    pub fn get_points_single(
+        &self,
+        height:i64,
+        width:i64,
+        stride:i64,
+    )->Tensor{
+        let mut vec_tensor: Vec<Tensor> = Vec::new();
+        vec_tensor.push(Tensor::arange_start_step(0, height*stride, stride, kind::FLOAT_CPU));
+        vec_tensor.push(Tensor::arange_start_step(0, width*stride, stride, kind::FLOAT_CPU));
+        let mut vec_y_x:Vec<Tensor> = Tensor::meshgrid(&vec_tensor);
+        let mut vec_y_x_reshape: Vec<Tensor> = Vec::new();
+        for m in vec_y_x.iter(){
+            vec_y_x_reshape.push(m.reshape(&[-1]));
+        }
+        let points = Tensor::stack(&vec_y_x_reshape, -1)+ stride / 2;
+        points
+
+    }
+    // pub fn fcos_target(
+    //     &self,
+    // )->Vec<Tensor>{
+    //
+    // }
 }
 
 // impl nn::ModuleT for FCOSHead {
