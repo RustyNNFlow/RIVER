@@ -300,4 +300,26 @@ impl FCOSHead {
         }
         t_out
     }
+    pub fn fcos_target(
+        &self,
+        vec_points:Vec<Tensor>,
+        gt_bboxes:Tensor,
+        gt_labels:Tensor,
+        vec_regress_range:Vec<Tensor>,
+    )->Vec<Vec<Tensor>>{
+        assert_eq!(vec_points.len(), vec_regress_range.len());
+        let num_levels = vec_points.len();
+        let mut out :Vec<Vec<Tensor>> = Vec::new();
+        for i in 0..num_levels{
+            out.push(
+                self.fcos_target_single(
+                    vec_points[i].copy(),
+                    gt_bboxes.copy(),
+                    gt_labels.copy(),
+                    vec_regress_range[i].expand_as(&vec_points[i]),
+                )
+            );
+        }
+        out
+    }
 }
