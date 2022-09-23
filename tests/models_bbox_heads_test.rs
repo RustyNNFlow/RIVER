@@ -29,7 +29,7 @@ fn test_models_bbox_heads(){
     const B: i64 = 1;
 
     use river::models::bbox_heads::fcos_head;
-    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
     let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
@@ -47,7 +47,7 @@ fn test_models_bbox_head_get_points_single(){
     const S: i64 = 32;
 
     use river::models::bbox_heads::fcos_head;
-    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
     let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
@@ -61,7 +61,8 @@ fn test_models_bbox_head_get_points(){
     const S: [i64; 3] = [32, 16, 8];
 
     use river::models::bbox_heads::fcos_head;
-    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
+
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
     let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
@@ -76,7 +77,8 @@ fn test_models_bbox_fcos_target_single(){
     const S: i64 = 32;
 
     use river::models::bbox_heads::fcos_head;
-    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
+
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
     let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
@@ -106,7 +108,8 @@ fn test_models_bbox_fcos_target(){
     let rr = [[-1, 64],[64, 128], [128, 256]];
 
     use river::models::bbox_heads::fcos_head;
-    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
+
     let vs = nn::VarStore::new(Device::cuda_if_available());
     let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
     let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);

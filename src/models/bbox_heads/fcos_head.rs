@@ -128,6 +128,7 @@ pub struct FCOSHeadCfg{
     feat_channels:i64,
     stacked_convs:i64,
     strides:Vec<i64>,
+    regress_ranges:Vec<Vec<i64>>,
 }
 
 impl FCOSHeadCfg {
@@ -142,6 +143,8 @@ impl FCOSHeadCfg {
 #[derive(Debug)]
 pub struct FCOSHead{
     heads:Vec<FCOSHeadSingle>,
+    strides:Vec<i64>,
+    regress_ranges:Vec<Vec<i64>>,
 }
 
 impl FCOSHead {
@@ -164,6 +167,8 @@ impl FCOSHead {
         }
         FCOSHead{
             heads:heads,
+            strides:cfg.strides.clone(),
+            regress_ranges:cfg.regress_ranges.clone(),
         }
     }
     pub fn forward_t(
@@ -321,5 +326,35 @@ impl FCOSHead {
             );
         }
         out
+    }
+    pub fn loss(
+        &self,
+        cls_scores:Vec<Tensor>,
+        bbox_preds:Vec<Tensor>,
+        gt_bboxes:Tensor,
+        gt_labels:Tensor,
+    )->Tensor{
+        let mut hs:Vec<i64> = Vec::new();
+        let mut ws:Vec<i64> = Vec::new();
+
+        let level_num = cls_scores.len();
+        let mut vec_regress_range: Vec<Tensor> = Vec::new();
+        for i in 0..level_num{
+            let size = cls_scores[i].size();
+            let len = size.len();
+            hs.push(size[len-2]);
+            ws.push(size[len-1]);
+            vec_regress_range.push(Tensor::of_slice(&self.regress_ranges[i]));
+        }
+
+
+        let all_level_points = self.get_points(hs, ws, self.strides.clone());
+        let target_out = self.fcos_target(
+            all_level_points,
+            gt_bboxes,
+            gt_labels,
+            vec_regress_range,
+        );
+        Tensor::of_slice(&[1])
     }
 }
