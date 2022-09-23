@@ -17,5 +17,5 @@ fn test_models_detectors_single_stage(){
     let cfg:single_stage::SingleStageDetectorCfg = single_stage::SingleStageDetectorCfg::loads(&s);
     let net = single_stage::SingleStageDetector::new(&vs.root(), &cfg);
     let t = Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device());
-    let o_ = net.forward_t(&t, true);
+    let _o = net.forward_t(&t, true);
 }

@@ -7,14 +7,12 @@ use crate::{
     datasets::category_info,
     datasets::dataset_iter,
     datasets::dataset_result,
-    datasets::pipelines::compose::TransformOps,
     datasets::pipelines::compose::Compose,
 };
 
 use std::{
     fs::File,
     io::Read,
-    path::Path,
     path::PathBuf,
     fs,
     collections::HashMap,

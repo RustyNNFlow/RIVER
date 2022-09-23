@@ -17,7 +17,7 @@ fn test_models_necks_gap(){
     let net = gap::GlobalAveragePooling::new(&vs.root(), &cfg);
     let mut ts:Vec<Tensor>=Vec::new();
     ts.push(Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device()));
-    let o_ = net.forward_t(&ts, true);
+    let _o = net.forward_t(&ts, true);
 }
 
 #[test]
@@ -56,6 +56,6 @@ fn test_models_necks_bifpn(){
         ts.push(Tensor::zeros(&[B,C[i],H[i],W[i]], kind::FLOAT_CPU).to_device(vs.device()));
     }
     let n = bifpn::BiFPN::new(&vs.root(), &cfg);
-    let o_ = n.forward_t(&ts, true);
+    let _o = n.forward_t(&ts, true);
 
 }

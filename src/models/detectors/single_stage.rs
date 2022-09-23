@@ -4,7 +4,6 @@ use crate::{
     models::bbox_heads::fcos_head,
     nn,
     Tensor,
-    Kind,
 };
 use serde::{Serialize, Deserialize};
 

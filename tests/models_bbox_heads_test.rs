@@ -85,11 +85,10 @@ fn test_models_bbox_fcos_target_single(){
 
     let points = n.get_points_single(H, W, S);
 
-    let vs = nn::VarStore::new(Device::cuda_if_available());
     let gt_bboxes = Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2,4]);
     let gt_labels = Tensor::ones(&[2,1], kind::INT64_CPU);
 
-    let mut regress_range = Tensor::arange_start_step(-1, 65, 65, kind::INT64_CPU).expand_as(&points);
+    let regress_range = Tensor::arange_start_step(-1, 65, 65, kind::INT64_CPU).expand_as(&points);
     let _o=n.fcos_target_single(
         points,
         gt_bboxes,

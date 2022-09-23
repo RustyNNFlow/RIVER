@@ -1,7 +1,6 @@
 use crate::{
     nn,
     nn::Conv2D,
-    nn::FuncT,
     nn::ModuleT,
     nn::BatchNorm,
     nn::SequentialT,

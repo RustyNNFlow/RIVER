@@ -18,7 +18,7 @@ fn test_models_backbones_resnet_cls(){
     let s_ = cfg.dumps();
     let net = resnet::ResNet::new(&vs.root(), &cfg);
     let t = Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device());
-    let o_ = net.forward_t(&t, true);
+    let _o = net.forward_t(&t, true);
 }
 
 #[test]
@@ -34,5 +34,5 @@ fn test_models_backbones_resnet_det(){
     let s_ = cfg.dumps();
     let net = resnet::ResNet::new(&vs.root(), &cfg);
     let t = Tensor::zeros(&[B,C,H,W], kind::FLOAT_CPU).to_device(vs.device());
-    let o_ = net.forward_t(&t, true);
+    let _o = net.forward_t(&t, true);
 }

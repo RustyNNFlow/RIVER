@@ -1,12 +1,7 @@
 use crate::{
     nn,
-    nn::Conv2D,
-    nn::FuncT,
-    nn::ModuleT,
-    nn::BatchNorm,
     nn::SequentialT,
     nn::Init,
-    nn::Scale,
     Tensor,
     models::utils::conv_module::conv_module,
     Kind,
@@ -89,12 +84,12 @@ impl BiFPNModule {
             let tmp_h=size[2]*2;
 
             xs[(i-1) as usize] = (
-                self.w1.narrow(0, 0, 1).squeeze_dim(0).narrow(0, i - 1, 1).squeeze_dim(0) * &xs[(i - 1) as usize] +
-                    self.w1.narrow(0,1,1).squeeze_dim(0).narrow(0, i - 1, 1).squeeze_dim(0)*&xs[i as usize].
+                w1.narrow(0, 0, 1).squeeze_dim(0).narrow(0, i - 1, 1).squeeze_dim(0) * &xs[(i - 1) as usize] +
+                    w1.narrow(0,1,1).squeeze_dim(0).narrow(0, i - 1, 1).squeeze_dim(0)*&xs[i as usize].
                         upsample_nearest2d(&[tmp_h, tmp_w], 2.0, 2.0)
             )/(
-                self.w1.narrow(0,0,1).squeeze_dim(0).narrow(0,i - 1, 1).squeeze_dim(0) +
-                    self.w1.narrow(0,1,1).squeeze_dim(0).narrow(0,i - 1, 1).squeeze_dim(0)
+                w1.narrow(0,0,1).squeeze_dim(0).narrow(0,i - 1, 1).squeeze_dim(0) +
+                    w1.narrow(0,1,1).squeeze_dim(0).narrow(0,i - 1, 1).squeeze_dim(0)
                     +self.eps
             );
             xs[(i-1) as usize]=xs[(i-1) as usize].apply_t(&self.bifpn_convs[idx_bifpn], train);
@@ -102,12 +97,12 @@ impl BiFPNModule {
         }
         for i in 0..self.levels-2{
             xs[(i+1) as usize]= (&xs[(i+1) as usize]+
-                self.w2.narrow(0,1,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)*&xs[i as usize]
+                w2.narrow(0,1,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)*&xs[i as usize]
                     .max_pool2d(&[2, 2], &[2, 2], &[0, 0], &[1, 1], false))/
                 (
-                    self.w2.narrow(0,0,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)
-                    +self.w2.narrow(0,1,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)
-                    +self.w2.narrow(0,2,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)
+                    w2.narrow(0,0,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)
+                    +w2.narrow(0,1,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)
+                    +w2.narrow(0,2,1).squeeze_dim(0).narrow(0,i,1).squeeze_dim(0)
                     +self.eps
                 );
             xs[(i+1) as usize] = xs[(i+1) as usize].apply_t(&self.bifpn_convs[idx_bifpn], train);
@@ -115,14 +110,14 @@ impl BiFPNModule {
 
         }
         xs[(self.levels-1) as usize]=(
-            self.w1.narrow(0,0,1).squeeze_dim(0).narrow(0,self.levels-1,1).squeeze_dim(0)
+            w1.narrow(0,0,1).squeeze_dim(0).narrow(0,self.levels-1,1).squeeze_dim(0)
                 *&xs[(self.levels-1) as usize]
-                + self.w1.narrow(0,1,1).squeeze_dim(0).narrow(0,self.levels-1,1).squeeze_dim(0)
+                + w1.narrow(0,1,1).squeeze_dim(0).narrow(0,self.levels-1,1).squeeze_dim(0)
                 *&xs[(self.levels-2) as usize].
                 max_pool2d(&[2, 2], &[2, 2], &[0, 0], &[1, 1], false)
             )/(
-            self.w1.narrow(0,0,1).squeeze_dim(0).narrow(0, self.levels-1, 1).squeeze_dim(0)+
-                self.w1.narrow(0,1,1).squeeze_dim(0).narrow(0, self.levels-1, 1).squeeze_dim(0)+self.eps
+            w1.narrow(0,0,1).squeeze_dim(0).narrow(0, self.levels-1, 1).squeeze_dim(0)+
+                w1.narrow(0,1,1).squeeze_dim(0).narrow(0, self.levels-1, 1).squeeze_dim(0)+self.eps
             );
         xs[(self.levels-1) as usize]=xs[(self.levels-1) as usize].
             apply_t(&self.bifpn_convs[idx_bifpn], train);
@@ -210,7 +205,7 @@ impl BiFPN {
 
         if cfg.add_extra_convs&&extra_levels>=1{
             for i in 0..extra_levels {
-                let mut in_channel=0;
+                let in_channel;
                 if i == 0 && cfg.extra_convs_on_inputs{
                     in_channel = cfg.in_channels[(backbone_end_level-1) as usize];
                 }
@@ -258,7 +253,7 @@ impl BiFPN {
         //use max pool to get more levels on top of outputs
         if self.num_outs > outs.len() as i64{
             if !self.add_extra_convs{
-                for i in 0..(self.num_outs - used_backbone_levels as i64){
+                for _ in 0..(self.num_outs - used_backbone_levels as i64){
                     outs.push(
                         outs[outs.len()-1].max_pool2d(&[1, 1], &[2, 2], &[0, 0], &[1, 1], false)
                     )

@@ -16,5 +16,5 @@ fn test_models_cls_heads_linear_head(){
     let net = linear_head::LinearClsHead::new(&vs.root(), &cfg);
     let mut ts:Vec<Tensor>=Vec::new();
     ts.push(Tensor::zeros(&[1,512], kind::FLOAT_CPU).to_device(vs.device()));
-    let o_ = net.forward_t(&ts, true);
+    let _o = net.forward_t(&ts, true);
 }

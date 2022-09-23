@@ -152,7 +152,6 @@ impl FCOSHead {
         p: &nn::Path,
         cfg: &FCOSHeadCfg,
     )->FCOSHead{
-        let cls_out_channels = cfg.num_classes - 1;
         let mut heads:Vec<FCOSHeadSingle>=Vec::new();
 
         for s in cfg.strides.iter() {
@@ -195,7 +194,7 @@ impl FCOSHead {
         let mut vec_tensor: Vec<Tensor> = Vec::new();
         vec_tensor.push(Tensor::arange_start_step(0, height*stride, stride, kind::FLOAT_CPU));
         vec_tensor.push(Tensor::arange_start_step(0, width*stride, stride, kind::FLOAT_CPU));
-        let mut vec_y_x:Vec<Tensor> = Tensor::meshgrid(&vec_tensor);
+        let vec_y_x:Vec<Tensor> = Tensor::meshgrid(&vec_tensor);
         let mut vec_y_x_reshape: Vec<Tensor> = Vec::new();
         for m in vec_y_x.iter(){
             vec_y_x_reshape.push(m.reshape(&[-1]));
@@ -248,10 +247,6 @@ impl FCOSHead {
 
             areas = areas.reshape(&[1, num_gts]).repeat(&[num_points, 1]);
 
-            let regress_ranges_size = regress_ranges.size();
-            let regress_ranges_t = regress_ranges
-                .reshape(&[regress_ranges_size[0],1,regress_ranges_size[1]])
-                .expand(&[num_points, num_gts, 2], false);
             let gt_bboxes_size = gt_bboxes.size();
 
             let gt_bboxes_t = gt_bboxes
@@ -273,7 +268,7 @@ impl FCOSHead {
 
             let (mut max_regress_distance, _) =  bbox_targets.max_dim(-1, true);
             max_regress_distance = max_regress_distance.squeeze_dim(-1);
-            let mut inside_regress_range = max_regress_distance.gt_tensor(
+            let inside_regress_range = max_regress_distance.gt_tensor(
                 &regress_ranges
                     .narrow(-1,0,1)
             )*regress_ranges
@@ -288,7 +283,6 @@ impl FCOSHead {
 
             let mut labels = gt_labels.index_select(0, &min_area_inds).squeeze_dim(-1);
             labels=labels.masked_fill(&min_area.eq(i64::MAX), 0);
-            let rng=Tensor::arange_start_step(0, num_points, 1, kind::FLOAT_CPU);
 
             let mut vec_bbox_target:Vec<Tensor> = Vec::new();
             for i in 0..num_points{
