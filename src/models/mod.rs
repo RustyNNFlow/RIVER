@@ -5,3 +5,4 @@ pub mod classifiers;
 pub mod bbox_heads;
 pub mod utils;
 pub mod detectors;
+pub mod losses;
