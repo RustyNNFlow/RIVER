@@ -1,17 +1,12 @@
 use crate::{
     nn,
     nn::Conv2D,
-    nn::FuncT,
-    nn::ModuleT,
-    nn::BatchNorm,
     nn::SequentialT,
-    nn::Init,
     nn::Scale,
     Tensor,
     models::utils::conv_module::conv_module,
     models::utils::conv_2d::conv2d,
     kind,
-    Device,
 };
 use serde::{Serialize, Deserialize};
 
@@ -225,15 +220,84 @@ impl FCOSHead {
         }
         vec_points
     }
-    // pub fn fcos_target(
-    //     &self,
-    // )->Vec<Tensor>{
-    //
-    // }
-}
 
-// impl nn::ModuleT for FCOSHead {
-//     fn forward_t(&self, xs: &Tensor, train: bool) -> Vec<Tensor> {
-//         xs
-//     }
-// }
+    pub fn fcos_target_single(
+        &self,
+        points:Tensor,
+        gt_bboxes:Tensor,
+        gt_labels:Tensor,
+        regress_ranges:Tensor,
+    )->Vec<Tensor>{
+        let mut t_out:Vec<Tensor> = Vec::new();
+        let num_points = points.size()[0];
+        let num_gts = gt_labels.size()[0];
+        if num_gts == 0{
+            t_out.push(gt_labels.new_zeros(&[num_points], kind::INT64_CPU));
+            t_out.push(gt_bboxes.new_zeros(&[num_points, 4], kind::INT64_CPU));
+        }
+        else {
+            let mut  areas = (gt_bboxes.narrow(1,2,1)
+                - gt_bboxes.narrow(1,0,1)+ 1)
+                * (gt_bboxes.narrow(1,3,1)
+                - gt_bboxes.narrow(1,1,1) + 1);
+
+            areas = areas.reshape(&[1, num_gts]).repeat(&[num_points, 1]);
+
+            let regress_ranges_size = regress_ranges.size();
+            let regress_ranges_t = regress_ranges
+                .reshape(&[regress_ranges_size[0],1,regress_ranges_size[1]])
+                .expand(&[num_points, num_gts, 2], false);
+            let gt_bboxes_size = gt_bboxes.size();
+
+            let gt_bboxes_t = gt_bboxes
+                .reshape(&[1, gt_bboxes_size[0], gt_bboxes_size[1]])
+                .expand(&[num_points, num_gts, 4], false);
+
+            let xs = points.narrow(1,0,1).expand(&[num_points, num_gts], false);
+            let ys = points.narrow(1,1,1).expand(&[num_points, num_gts], false);
+
+            let left =  xs.copy() - gt_bboxes_t.narrow(-1,0,1).squeeze_dim(-1);
+            let right = gt_bboxes.narrow(-1,2,1).squeeze_dim(-1) - xs;
+            let top = ys.copy() - gt_bboxes.narrow(-1,1,1).squeeze_dim(-1);
+            let bottom = gt_bboxes.narrow(-1,3,1).squeeze_dim(-1) - ys;
+            let mut bbox_targets = Tensor::stack(&[left, top, right, bottom], -1);
+
+            let (mut bbox_targets_min, _) =  bbox_targets.min_dim(-1, true);
+            bbox_targets_min = bbox_targets_min.squeeze_dim(-1);
+            let inside_gt_bbox_mask = bbox_targets_min.gt(0);
+
+            let (mut max_regress_distance, _) =  bbox_targets.max_dim(-1, true);
+            max_regress_distance = max_regress_distance.squeeze_dim(-1);
+            let mut inside_regress_range = max_regress_distance.gt_tensor(
+                &regress_ranges
+                    .narrow(-1,0,1)
+            )*regress_ranges
+                .narrow(-1,1,1)
+                .gt_tensor(&max_regress_distance);
+
+
+            areas=areas.masked_fill(&inside_gt_bbox_mask.eq(0),i64::MAX);
+            areas=areas.masked_fill(&inside_regress_range.eq(0),i64::MAX);
+
+            let (min_area, min_area_inds) = areas.min_dim(1, false);
+
+            let mut labels = gt_labels.index_select(0, &min_area_inds).squeeze_dim(-1);
+            labels=labels.masked_fill(&min_area.eq(i64::MAX), 0);
+            let rng=Tensor::arange_start_step(0, num_points, 1, kind::FLOAT_CPU);
+
+            let mut vec_bbox_target:Vec<Tensor> = Vec::new();
+            for i in 0..num_points{
+                vec_bbox_target.push(
+                    bbox_targets
+                        .select(0, i)
+                        .index_select(0, &min_area_inds.select(0,i))
+                );
+            }
+            bbox_targets = Tensor::cat(&vec_bbox_target, 0);
+
+            t_out.push(labels);
+            t_out.push(bbox_targets);
+        }
+        t_out
+    }
+}

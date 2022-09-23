@@ -68,3 +68,32 @@ fn test_models_bbox_head_get_points(){
 
     let o_ = n.get_points(H.to_vec(), W.to_vec(), S.to_vec());
 }
+
+#[test]
+fn test_models_bbox_fcos_target_single(){
+    const W: i64 = 16;
+    const H: i64 = 16;
+    const S: i64 = 32;
+
+    use river::models::bbox_heads::fcos_head;
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32]}");
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
+    let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+
+    let points = n.get_points_single(H, W, S);
+
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let gt_bboxes = Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2,4]);
+    let gt_labels = Tensor::ones(&[2,1], kind::INT64_CPU);
+
+    let mut regress_range = Tensor::arange_start_step(-1, 65, 65, kind::INT64_CPU).expand_as(&points);
+    let o_=n.fcos_target_single(
+        points,
+        gt_bboxes,
+        gt_labels,
+        regress_range
+    );
+
+
+}
