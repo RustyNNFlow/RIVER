@@ -131,3 +131,35 @@ fn test_models_bbox_fcos_target(){
         vec_regress_range,
     );
 }
+
+#[test]
+fn test_models_bbox_fcos_loss(){
+    const W: [i64; 3] = [32, 64, 128];
+    const H: [i64; 3] = [64, 128, 256];
+
+    use river::models::bbox_heads::fcos_head;
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
+
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
+    let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+
+
+    let gt_bboxes = Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2,4]);
+    let gt_labels = Tensor::ones(&[2,1], kind::INT64_CPU);
+    let mut cls_scores : Vec<Tensor> = Vec::new();
+    let mut bbox_preds : Vec<Tensor> = Vec::new();
+
+    for i in 0..3{
+        cls_scores.push(Tensor::ones(&[1, 80, H[i], W[i]],kind::FLOAT_CPU).to_device(vs.device()));
+        bbox_preds.push(Tensor::ones(&[1, 4, H[i], W[i]],kind::FLOAT_CPU).to_device(vs.device()));
+    }
+
+
+    let _o = n.loss(
+        cls_scores,
+        bbox_preds,
+        gt_bboxes,
+        gt_labels,
+    );
+}

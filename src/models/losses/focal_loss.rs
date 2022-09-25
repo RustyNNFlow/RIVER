@@ -65,7 +65,6 @@ pub struct FocalLoss{
 
 impl FocalLoss {
     pub fn new(
-        p: &nn::Path,
         cfg: &FocalLossCfg,
     )->FocalLoss{
         FocalLoss{

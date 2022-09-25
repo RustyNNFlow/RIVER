@@ -6,6 +6,7 @@ use crate::{
     Tensor,
     models::utils::conv_module::conv_module,
     models::utils::conv_2d::conv2d,
+    models::losses::focal_loss,
     kind,
 };
 use serde::{Serialize, Deserialize};
@@ -145,6 +146,8 @@ pub struct FCOSHead{
     heads:Vec<FCOSHeadSingle>,
     strides:Vec<i64>,
     regress_ranges:Vec<Vec<i64>>,
+    num_classes:i64,
+    loss_cls:focal_loss::FocalLoss,
 }
 
 impl FCOSHead {
@@ -153,7 +156,6 @@ impl FCOSHead {
         cfg: &FCOSHeadCfg,
     )->FCOSHead{
         let mut heads:Vec<FCOSHeadSingle>=Vec::new();
-
         for s in cfg.strides.iter() {
             let cfg_s:FCOSHeadSingleCfg = FCOSHeadSingleCfg::new(
                 cfg.in_channels,
@@ -164,10 +166,14 @@ impl FCOSHead {
             );
             heads.push(FCOSHeadSingle::new(p, &cfg_s));
         }
+        let s = String::from("{\"use_sigmoid\":true,\"gamma\":2.0,\"alpha\":0.25,\"loss_weight\":1.0}");
+        let loss_cls_cfg = focal_loss::FocalLossCfg::loads(&s);
         FCOSHead{
             heads:heads,
             strides:cfg.strides.clone(),
             regress_ranges:cfg.regress_ranges.clone(),
+            num_classes:cfg.num_classes,
+            loss_cls:focal_loss::FocalLoss::new(&loss_cls_cfg),
         }
     }
     pub fn forward_t(
@@ -231,13 +237,13 @@ impl FCOSHead {
         gt_bboxes:Tensor,
         gt_labels:Tensor,
         regress_ranges:Tensor,
-    )->Vec<Tensor>{
+    )->(Tensor, Tensor){
         let mut t_out:Vec<Tensor> = Vec::new();
         let num_points = points.size()[0];
         let num_gts = gt_labels.size()[0];
         if num_gts == 0{
-            t_out.push(gt_labels.new_zeros(&[num_points], kind::INT64_CPU));
-            t_out.push(gt_bboxes.new_zeros(&[num_points, 4], kind::INT64_CPU));
+            return (gt_labels.new_zeros(&[num_points], kind::INT64_CPU),
+            gt_bboxes.new_zeros(&[num_points, 4], kind::INT64_CPU))
         }
         else {
             let mut  areas = (gt_bboxes.narrow(1,2,1)
@@ -294,10 +300,8 @@ impl FCOSHead {
             }
             bbox_targets = Tensor::cat(&vec_bbox_target, 0);
 
-            t_out.push(labels);
-            t_out.push(bbox_targets);
+            return (labels,bbox_targets)
         }
-        t_out
     }
     pub fn fcos_target(
         &self,
@@ -305,21 +309,23 @@ impl FCOSHead {
         gt_bboxes:Tensor,
         gt_labels:Tensor,
         vec_regress_range:Vec<Tensor>,
-    )->Vec<Vec<Tensor>>{
+    )->(Vec<Tensor>,Vec<Tensor>){
         assert_eq!(vec_points.len(), vec_regress_range.len());
         let num_levels = vec_points.len();
-        let mut out :Vec<Vec<Tensor>> = Vec::new();
+        let mut out_labels :Vec<Tensor> = Vec::new();
+        let mut out_bboxes :Vec<Tensor> = Vec::new();
         for i in 0..num_levels{
-            out.push(
-                self.fcos_target_single(
+            let (labels, bboxes)=self.fcos_target_single(
                     vec_points[i].copy(),
                     gt_bboxes.copy(),
                     gt_labels.copy(),
                     vec_regress_range[i].expand_as(&vec_points[i]),
-                )
-            );
+                );
+            out_labels.push(labels);
+            out_bboxes.push(bboxes);
+
         }
-        out
+        (out_labels, out_bboxes)
     }
     pub fn loss(
         &self,
@@ -342,13 +348,52 @@ impl FCOSHead {
         }
 
 
-        let all_level_points = self.get_points(hs, ws, self.strides.clone());
-        let target_out = self.fcos_target(
+        let all_level_points = self.get_points(hs.clone(), ws.clone(), self.strides.clone());
+        let (labels, bbox_targets) = self.fcos_target(
             all_level_points,
             gt_bboxes,
             gt_labels,
             vec_regress_range,
         );
+        let all_level_points = self.get_points(hs.clone(), ws.clone(), self.strides.clone());
+
+        let mut flatten_cls_scores:Vec<Tensor>=Vec::new();
+        let mut flatten_bbox_preds:Vec<Tensor>=Vec::new();
+        for i in 0..level_num{
+            flatten_cls_scores.push(
+                cls_scores[i].permute(&[0,2,3,1]).reshape(&[-1, self.num_classes-1])
+            );
+            flatten_bbox_preds.push(
+                bbox_preds[i].permute(&[0,2,3,1]).reshape(&[-1, 4])
+            );
+        }
+        let flatten_cls_scores = Tensor::cat(&flatten_cls_scores, 0);
+        let flatten_bbox_preds = Tensor::cat(&flatten_bbox_preds, 0);
+        // println!("{:?}", flatten_cls_scores);
+        // println!("{:?}", flatten_bbox_preds);
+
+        let flatten_labels = Tensor::cat(&labels, 0);
+        let flatten_bbox_targets = Tensor::cat(&bbox_targets, 0);
+        // println!("{:?}", flatten_labels);
+        // println!("{:?}", flatten_bbox_targets);
+        let mut points_vec:Vec<Tensor> = Vec::new();
+        let num_imgs = cls_scores[0].size()[0];
+        for i in 0..level_num{
+            points_vec.push(all_level_points[i].repeat(&[num_imgs, 1]));
+        }
+        let flatten_points:Tensor = Tensor::cat(&points_vec, 0);
+        // println!("{:?}", flatten_points);
+        let pos_inds = flatten_labels.nonzero().reshape(&[-1]);
+
+        // println!("{:?}", pos_inds);
+        let num_pos = pos_inds.size()[0];
+        // println!("{:?}", num_pos);
+        let loss_cls = self.loss_cls.forward(
+            flatten_cls_scores,
+            flatten_labels,
+            num_pos + num_imgs,
+        );
+        // println!("{:?}", loss_cls);
         Tensor::of_slice(&[1])
     }
 }
