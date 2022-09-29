@@ -163,3 +163,28 @@ fn test_models_bbox_fcos_loss(){
         gt_labels,
     );
 }
+
+#[test]
+fn test_models_bbox_fcos_distance2bbox(){
+    const W: i64 = 2;
+    const H: i64 = 3;
+    const S: i64 = 32;
+
+    use river::models::bbox_heads::fcos_head;
+    let s = String::from("{\"in_channels\":512,\"num_classes\":81,\"feat_channels\":256,\"stacked_convs\":2,\"strides\":[8,16,32],\"regress_ranges\":[[-1,64],[64,128],[128,100000000]]}");
+
+    let vs = nn::VarStore::new(Device::cuda_if_available());
+    let cfg:fcos_head::FCOSHeadCfg = fcos_head::FCOSHeadCfg::loads(&s);
+    let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
+
+    let points = n.get_points_single(H, W, S);
+    let distances = Tensor::ones(&[H*W, 4],kind::FLOAT_CPU);
+
+    let _o=fcos_head::distance2bbox(
+        points,
+        distances,
+    );
+
+
+
+}

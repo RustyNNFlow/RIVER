@@ -7,7 +7,9 @@ use crate::{
     models::utils::conv_module::conv_module,
     models::utils::conv_2d::conv2d,
     models::losses::focal_loss,
+    models::losses::iou_loss,
     kind,
+    Kind,
 };
 use serde::{Serialize, Deserialize};
 
@@ -148,6 +150,7 @@ pub struct FCOSHead{
     regress_ranges:Vec<Vec<i64>>,
     num_classes:i64,
     loss_cls:focal_loss::FocalLoss,
+    loss_bbox:iou_loss::IoULoss,
 }
 
 impl FCOSHead {
@@ -168,12 +171,15 @@ impl FCOSHead {
         }
         let s = String::from("{\"use_sigmoid\":true,\"gamma\":2.0,\"alpha\":0.25,\"loss_weight\":1.0}");
         let loss_cls_cfg = focal_loss::FocalLossCfg::loads(&s);
+        let s = String::from("{\"eps\":0.001,\"loss_weight\":1.0}");
+        let loss_bbox_cfg = iou_loss::IoULossCfg::loads(&s);
         FCOSHead{
             heads:heads,
             strides:cfg.strides.clone(),
             regress_ranges:cfg.regress_ranges.clone(),
             num_classes:cfg.num_classes,
             loss_cls:focal_loss::FocalLoss::new(&loss_cls_cfg),
+            loss_bbox:iou_loss::IoULoss::new(&loss_bbox_cfg),
         }
     }
     pub fn forward_t(
@@ -394,6 +400,31 @@ impl FCOSHead {
             num_pos + num_imgs,
         );
         // println!("{:?}", loss_cls);
-        Tensor::of_slice(&[1])
+
+        let pos_bbox_preds = flatten_bbox_preds.index_select(0, &pos_inds);
+        let mut loss_bbox = pos_bbox_preds.sum(Kind::Double);
+        if num_pos > 0{
+            let pos_bbox_targets = flatten_bbox_targets.index_select(0, &pos_inds);
+            let pos_points = flatten_points.index_select(0, &pos_inds);
+            let pos_points_size = pos_points.size();
+            let pos_decoded_bbox_preds = distance2bbox(pos_points.copy(), pos_bbox_preds);
+            let pos_decoded_target_preds = distance2bbox(pos_points, pos_bbox_targets);
+            loss_bbox=self.loss_bbox.forward(
+                pos_decoded_bbox_preds,
+                pos_decoded_target_preds,
+                pos_points_size[0],
+            );
+        }
+
+
+        loss_cls+loss_bbox
     }
+}
+
+pub fn distance2bbox(points:Tensor, distance:Tensor)->Tensor{
+    let x1 = points.narrow(-1,0,1)- distance.narrow(-1,0,1);
+    let y1 = points.narrow(-1,1,1)- distance.narrow(-1,1,1);
+    let x2 = points.narrow(-1,0,1)+ distance.narrow(-1,2,1);
+    let y2 = points.narrow(-1,1,1)+ distance.narrow(-1,3,1);
+    Tensor::cat(&[x1, y1, x2, y2], -1)
 }
