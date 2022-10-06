@@ -37,10 +37,10 @@ fn test_models_detectors_single_stage_forward_train(){
 
     let mut vec_gt_bboxes:Vec<Tensor> = Vec::new();
     let mut vec_gt_labels:Vec<Tensor> = Vec::new();
-    for _ in 0..B {
-        vec_gt_bboxes.push(Tensor::ones(&[N,4], kind::FLOAT_CPU).to_device(vs.device()));
+    for i in 0..B {
+        vec_gt_bboxes.push(Tensor::ones(&[1+i,4], kind::FLOAT_CPU).to_device(vs.device()));
 
-        vec_gt_labels.push(Tensor::ones(&[N,1], kind::INT64_CPU).to_device(vs.device()));
+        vec_gt_labels.push(Tensor::ones(&[1+i,1], kind::INT64_CPU).to_device(vs.device()));
     }
 
     let _o = net.forward_train(&t, &vec_gt_bboxes, &vec_gt_labels, true);
