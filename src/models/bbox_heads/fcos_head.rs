@@ -148,7 +148,7 @@ pub struct FCOSHead{
     heads:Vec<FCOSHeadSingle>,
     strides:Vec<i64>,
     regress_ranges:Vec<Vec<i64>>,
-    num_classes:i64,
+    pub num_classes:i64,
     loss_cls:focal_loss::FocalLoss,
     loss_bbox:iou_loss::IoULoss,
 }
@@ -239,10 +239,10 @@ impl FCOSHead {
 
     pub fn fcos_target_single(
         &self,
-        points:Tensor,
-        gt_bboxes:Tensor,
-        gt_labels:Tensor,
-        regress_ranges:Tensor,
+        points:&Tensor,
+        gt_bboxes:&Tensor,
+        gt_labels:&Tensor,
+        regress_ranges:&Tensor,
     )->(Tensor, Tensor){
         let mut t_out:Vec<Tensor> = Vec::new();
         let num_points = points.size()[0];
@@ -311,21 +311,32 @@ impl FCOSHead {
     }
     pub fn fcos_target(
         &self,
-        vec_points:Vec<Tensor>,
-        gt_bboxes:Tensor,
-        gt_labels:Tensor,
-        vec_regress_range:Vec<Tensor>,
+        vec_points:&Vec<Tensor>,
+        vec_gt_bboxes:&Vec<Tensor>,
+        vec_gt_labels:&Vec<Tensor>,
+        vec_regress_range:&Vec<Tensor>,
     )->(Vec<Tensor>,Vec<Tensor>){
         assert_eq!(vec_points.len(), vec_regress_range.len());
+        assert_eq!(vec_gt_bboxes.len(), vec_gt_labels.len());
+
         let num_levels = vec_points.len();
+        let gt_len = vec_gt_bboxes.len();
+        let mut expanded_regress_ranges:Vec<Tensor> = Vec::new();
+
+        for i in 0..num_levels {
+            expanded_regress_ranges.push(vec_regress_range[i].expand_as(&vec_points[i]));
+        }
+        let concat_points = Tensor::cat(&vec_points, 0);
+        let concat_regress_ranges = Tensor::cat(&expanded_regress_ranges, 0);
+
         let mut out_labels :Vec<Tensor> = Vec::new();
         let mut out_bboxes :Vec<Tensor> = Vec::new();
-        for i in 0..num_levels{
+        for i in 0..gt_len{
             let (labels, bboxes)=self.fcos_target_single(
-                    vec_points[i].copy(),
-                    gt_bboxes.copy(),
-                    gt_labels.copy(),
-                    vec_regress_range[i].expand_as(&vec_points[i]),
+                    &concat_points,
+                    &vec_gt_bboxes[i],
+                    &vec_gt_labels[i],
+                    &concat_regress_ranges,
                 );
             out_labels.push(labels);
             out_bboxes.push(bboxes);
@@ -333,12 +344,13 @@ impl FCOSHead {
         }
         (out_labels, out_bboxes)
     }
+
     pub fn loss(
         &self,
-        cls_scores:Vec<Tensor>,
-        bbox_preds:Vec<Tensor>,
-        gt_bboxes:Tensor,
-        gt_labels:Tensor,
+        cls_scores:&Vec<Tensor>,
+        bbox_preds:&Vec<Tensor>,
+        vec_gt_bboxes:&Vec<Tensor>,
+        vec_gt_labels:&Vec<Tensor>,
     )->Tensor{
         let mut hs:Vec<i64> = Vec::new();
         let mut ws:Vec<i64> = Vec::new();
@@ -356,10 +368,10 @@ impl FCOSHead {
 
         let all_level_points = self.get_points(hs.clone(), ws.clone(), self.strides.clone());
         let (labels, bbox_targets) = self.fcos_target(
-            all_level_points,
-            gt_bboxes,
-            gt_labels,
-            vec_regress_range,
+            &all_level_points,
+            vec_gt_bboxes,
+            vec_gt_labels,
+            &vec_regress_range,
         );
         let all_level_points = self.get_points(hs.clone(), ws.clone(), self.strides.clone());
 

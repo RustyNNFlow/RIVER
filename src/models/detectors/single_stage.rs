@@ -49,21 +49,31 @@ impl SingleStageDetector {
 
         self.bbox_head.forward_t(xs, train)
     }
-    // pub fn forward_train(
-    //     &self,
-    //     xs: &Tensor,
-    //     ys:&Tensor,
-    // )-> Tensor
-    // {
-    //     nn::ModuleT::forward_t(self, xs, true).cross_entropy_for_logits(&ys)
-    // }
-    // pub fn simple_test(
-    //     &self,
-    //     xs: &Tensor,
-    // )-> (Tensor, Tensor)
-    // {
-    //     let scores = nn::ModuleT::forward_t(self, &xs, false).softmax(-1, Kind::Float);
-    //     let ids = scores.argmax(-1, false);
-    //     (scores, ids)
-    // }
+    pub fn forward_train(
+        &self,
+        input: &Tensor,
+        gt_bboxes:&Vec<Tensor>,
+        gt_labels:&Vec<Tensor>,
+        train: bool,
+    )-> Tensor
+    {
+        let xs = self.forward_t(input, train);
+
+        let mut cls_scores:Vec<Tensor>=Vec::new();
+        let mut bbox_preds:Vec<Tensor>=Vec::new();
+        let level_num = xs.len();
+        let class_num = self.bbox_head.num_classes;
+        for i in 0..level_num{
+            cls_scores.push(xs[i].narrow(1, 0, class_num-1));
+            bbox_preds.push(xs[i].narrow(1, class_num-1,4));
+        }
+
+        self.bbox_head.loss(
+            &cls_scores,
+            &bbox_preds,
+            gt_bboxes,
+            gt_labels,
+        )
+
+    }
 }

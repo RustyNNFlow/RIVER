@@ -90,13 +90,11 @@ fn test_models_bbox_fcos_target_single(){
 
     let regress_range = Tensor::arange_start_step(-1, 65, 65, kind::INT64_CPU).expand_as(&points);
     let _o=n.fcos_target_single(
-        points,
-        gt_bboxes,
-        gt_labels,
-        regress_range
+        &points,
+        &gt_bboxes,
+        &gt_labels,
+        &regress_range
     );
-
-
 }
 
 #[test]
@@ -122,13 +120,18 @@ fn test_models_bbox_fcos_target(){
         );
     }
 
-    let gt_bboxes = Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2,4]);
-    let gt_labels = Tensor::ones(&[2,1], kind::INT64_CPU);
+    let mut vec_gt_bboxes:Vec<Tensor> = Vec::new();
+    let mut vec_gt_labels:Vec<Tensor> = Vec::new();
+    for i in 0..2 {
+        vec_gt_bboxes.push(Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2, 4]));
+
+        vec_gt_labels.push(Tensor::ones(&[2, 1], kind::INT64_CPU));
+    }
     let _o = n.fcos_target(
-        vec_points,
-        gt_bboxes,
-        gt_labels,
-        vec_regress_range,
+        &vec_points,
+        &vec_gt_bboxes,
+        &vec_gt_labels,
+        &vec_regress_range,
     );
 }
 
@@ -145,22 +148,27 @@ fn test_models_bbox_fcos_loss(){
     let n = fcos_head::FCOSHead::new(&vs.root(), &cfg);
 
 
-    let gt_bboxes = Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2,4]);
-    let gt_labels = Tensor::ones(&[2,1], kind::INT64_CPU);
     let mut cls_scores : Vec<Tensor> = Vec::new();
     let mut bbox_preds : Vec<Tensor> = Vec::new();
 
     for i in 0..3{
-        cls_scores.push(Tensor::ones(&[1, 80, H[i], W[i]],kind::FLOAT_CPU).to_device(vs.device()));
-        bbox_preds.push(Tensor::ones(&[1, 4, H[i], W[i]],kind::FLOAT_CPU).to_device(vs.device()));
+        cls_scores.push(Tensor::ones(&[2, 80, H[i], W[i]],kind::FLOAT_CPU).to_device(vs.device()));
+        bbox_preds.push(Tensor::ones(&[2, 4, H[i], W[i]],kind::FLOAT_CPU).to_device(vs.device()));
     }
 
+    let mut vec_gt_bboxes:Vec<Tensor> = Vec::new();
+    let mut vec_gt_labels:Vec<Tensor> = Vec::new();
+    for _ in 0..2 {
+        vec_gt_bboxes.push(Tensor::arange_start_step(0, 160, 20, kind::FLOAT_CPU).reshape(&[2, 4]));
+
+        vec_gt_labels.push(Tensor::ones(&[2, 1], kind::INT64_CPU));
+    }
 
     let _o = n.loss(
-        cls_scores,
-        bbox_preds,
-        gt_bboxes,
-        gt_labels,
+        &cls_scores,
+        &bbox_preds,
+        &vec_gt_bboxes,
+        &vec_gt_labels,
     );
 }
 
