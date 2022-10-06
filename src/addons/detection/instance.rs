@@ -1,18 +1,37 @@
 use serde::{Serialize, Deserialize};
 use crate::datasets::category_info;
+use crate::tensor::Tensor;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct BBox{
-    x1:f64,
-    y1:f64,
-    x2:f64,
-    y2:f64,
+    pub x1:f64,
+    pub y1:f64,
+    pub x2:f64,
+    pub y2:f64,
+}
+impl BBox{
+    pub fn to_vec(&self)->Vec<f64>{
+        let mut vec:Vec<f64> = Vec::new();
+        vec.push(self.x1);
+        vec.push(self.y1);
+        vec.push(self.x2);
+        vec.push(self.y2);
+        vec
+    }
+    pub fn to_tensor(&self)->Tensor{
+        let mut vec:Vec<f64> = Vec::new();
+        vec.push(self.x1);
+        vec.push(self.y1);
+        vec.push(self.x2);
+        vec.push(self.y2);
+        Tensor::of_slice(&vec)
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct  DetInstanceData{
     category:String,
-    bbox:BBox,
+    pub bbox:BBox,
     score:Option<f64>,
     pub category_index:Option<i64>,
 }
@@ -65,6 +84,15 @@ impl DetInstancesGroup{
     }
     pub fn update_image_width(&mut self, image_width:i64){
         self.usage.image_width=image_width;
+    }
+    pub fn resize_bbox(&mut self, fx:f64, fy:f64){
+        let len = self.data.len();
+        for i in 0..len{
+            self.data[i].bbox.x1 = self.data[i].bbox.x1*fx;
+            self.data[i].bbox.y1 = self.data[i].bbox.y1*fy;
+            self.data[i].bbox.x2 = self.data[i].bbox.x2*fx;
+            self.data[i].bbox.y2 = self.data[i].bbox.y2*fy;
+        }
     }
     pub fn new(
         vec_data:Vec<DetInstanceData>,

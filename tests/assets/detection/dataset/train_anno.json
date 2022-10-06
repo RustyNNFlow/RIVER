@@ -5,7 +5,8 @@
 	"data": [{
 		"data": [{
 			"type": "Train",
-			"category": "9"
+			"category": "9",
+			"bbox": [1,2,26, 27]
 		}],
 		"usage": {
 			"image_name": "training/9/21842.jpg",

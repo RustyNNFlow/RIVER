@@ -93,7 +93,7 @@ fn test_classification_dataset_load_dump(){
     let obj:cls_dataset::ClsDataset = cls_dataset::ClsDataset::load_by_file(&s);
     obj.dump_to_file(
         &std::env::temp_dir()
-        .join(format!("cls_dataset_0.json"))
+        .join(format!("det_dataset_0.json"))
         .into_os_string()
         .into_string()
         .unwrap()

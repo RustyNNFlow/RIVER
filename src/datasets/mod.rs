@@ -5,3 +5,7 @@ pub mod category_info;
 pub mod dataset_iter;
 pub mod pipelines;
 pub mod dataset_result;
+pub mod det_dataset;
+pub mod det_dataset_result;
+pub mod det_pipelines;
+pub mod det_dataset_iter;
