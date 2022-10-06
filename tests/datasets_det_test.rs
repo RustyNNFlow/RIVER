@@ -100,3 +100,24 @@ fn test_detection_dataset_load_dump(){
         .unwrap()
     );
 }
+
+// #[test]
+// fn test_detection_dataset_voc_train_iter(){
+//     let s = String::from("{\"transforms\":[{\"type\":\"ResizeTorch\",\"target_height\":14,\"target_width\":14}]}");
+//     let compose = Compose::loads(&s);
+//
+//     let obj:det_dataset::DetDataset = det_dataset::DetDataset::new(
+//         &String::from("/Users/zhoujinghui/Documents/数据/项目数据集/VOCdevkit/VOC/train_image_list.json"),
+//         &String::from("/Users/zhoujinghui/Documents/数据/项目数据集/VOCdevkit/VOC"),
+//         compose,
+//         true,
+//         true,
+//         Some(String::from("/Users/zhoujinghui/Documents/数据/项目数据集/VOCdevkit/VOC/train_anno.json")),
+//         Some(String::from("/Users/zhoujinghui/Documents/数据/项目数据集/VOCdevkit/VOC/category_info.json")),
+//     );
+//
+//     for (idx, (bimages, gt_labels, gt_bboxes, ins_groups)) in obj.iter(2).enumerate(){
+//         println!("{} {:?} {:?} {:?} {:?}", idx, bimages, gt_labels, gt_bboxes, ins_groups);
+//     }
+//
+// }

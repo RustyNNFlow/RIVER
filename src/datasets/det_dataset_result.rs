@@ -32,7 +32,12 @@ impl DetDatasetResult{
                 ys.push(s);
             }
         }
-        Tensor::of_slice(&ys)
+        if ys.len() > 0 {
+            return Tensor::of_slice(&ys).reshape(&[-1, 1]);
+        }
+        else{
+            return Tensor::of_slice(&ys);
+        }
     }
     pub fn gt_bboxes(&self)->Tensor{
         let mut ys:Vec<Tensor> = Vec::new();

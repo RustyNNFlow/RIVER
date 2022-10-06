@@ -24,7 +24,7 @@ impl BBox{
         vec.push(self.y1);
         vec.push(self.x2);
         vec.push(self.y2);
-        Tensor::of_slice(&vec)
+        Tensor::of_slice(&vec).reshape(&[1,4])
     }
 }
 
