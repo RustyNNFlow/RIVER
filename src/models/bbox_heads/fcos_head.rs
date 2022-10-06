@@ -10,6 +10,7 @@ use crate::{
     models::losses::iou_loss,
     kind,
     Kind,
+    Device,
 };
 use serde::{Serialize, Deserialize};
 
@@ -151,6 +152,7 @@ pub struct FCOSHead{
     pub num_classes:i64,
     loss_cls:focal_loss::FocalLoss,
     loss_bbox:iou_loss::IoULoss,
+    device:Device,
 }
 
 impl FCOSHead {
@@ -180,6 +182,7 @@ impl FCOSHead {
             num_classes:cfg.num_classes,
             loss_cls:focal_loss::FocalLoss::new(&loss_cls_cfg),
             loss_bbox:iou_loss::IoULoss::new(&loss_bbox_cfg),
+            device:p.device(),
         }
     }
     pub fn forward_t(
@@ -204,8 +207,8 @@ impl FCOSHead {
         stride:i64,
     )->Tensor{
         let mut vec_tensor: Vec<Tensor> = Vec::new();
-        vec_tensor.push(Tensor::arange_start_step(0, height*stride, stride, kind::FLOAT_CPU));
-        vec_tensor.push(Tensor::arange_start_step(0, width*stride, stride, kind::FLOAT_CPU));
+        vec_tensor.push(Tensor::arange_start_step(0, height*stride, stride, kind::FLOAT_CPU).to_device(self.device));
+        vec_tensor.push(Tensor::arange_start_step(0, width*stride, stride, kind::FLOAT_CPU).to_device(self.device));
         let vec_y_x:Vec<Tensor> = Tensor::meshgrid(&vec_tensor);
         let mut vec_y_x_reshape: Vec<Tensor> = Vec::new();
         for m in vec_y_x.iter(){
@@ -248,8 +251,8 @@ impl FCOSHead {
         let num_points = points.size()[0];
         let num_gts = gt_labels.size()[0];
         if num_gts == 0{
-            return (gt_labels.new_zeros(&[num_points], kind::INT64_CPU),
-            gt_bboxes.new_zeros(&[num_points, 4], kind::INT64_CPU))
+            return (gt_labels.new_zeros(&[num_points], kind::INT64_CPU).to_device(self.device),
+            gt_bboxes.new_zeros(&[num_points, 4], kind::INT64_CPU).to_device(self.device))
         }
         else {
             let mut  areas = (gt_bboxes.narrow(1,2,1)
@@ -352,6 +355,7 @@ impl FCOSHead {
         vec_gt_bboxes:&Vec<Tensor>,
         vec_gt_labels:&Vec<Tensor>,
     )->Tensor{
+
         let mut hs:Vec<i64> = Vec::new();
         let mut ws:Vec<i64> = Vec::new();
 
@@ -362,7 +366,7 @@ impl FCOSHead {
             let len = size.len();
             hs.push(size[len-2]);
             ws.push(size[len-1]);
-            vec_regress_range.push(Tensor::of_slice(&self.regress_ranges[i]));
+            vec_regress_range.push(Tensor::of_slice(&self.regress_ranges[i]).to_device(self.device));
         }
 
 
@@ -387,31 +391,29 @@ impl FCOSHead {
         }
         let flatten_cls_scores = Tensor::cat(&flatten_cls_scores, 0);
         let flatten_bbox_preds = Tensor::cat(&flatten_bbox_preds, 0);
-        // println!("{:?}", flatten_cls_scores);
-        // println!("{:?}", flatten_bbox_preds);
 
         let flatten_labels = Tensor::cat(&labels, 0);
         let flatten_bbox_targets = Tensor::cat(&bbox_targets, 0);
-        // println!("{:?}", flatten_labels);
-        // println!("{:?}", flatten_bbox_targets);
+
         let mut points_vec:Vec<Tensor> = Vec::new();
         let num_imgs = cls_scores[0].size()[0];
         for i in 0..level_num{
             points_vec.push(all_level_points[i].repeat(&[num_imgs, 1]));
         }
         let flatten_points:Tensor = Tensor::cat(&points_vec, 0);
-        // println!("{:?}", flatten_points);
+
         let pos_inds = flatten_labels.nonzero().reshape(&[-1]);
 
-        // println!("{:?}", pos_inds);
+
         let num_pos = pos_inds.size()[0];
-        // println!("{:?}", num_pos);
+
         let loss_cls = self.loss_cls.forward(
             flatten_cls_scores,
             flatten_labels,
             num_pos + num_imgs,
         );
-        // println!("{:?}", loss_cls);
+
+
 
         let pos_bbox_preds = flatten_bbox_preds.index_select(0, &pos_inds);
         let mut loss_bbox = pos_bbox_preds.sum(Kind::Double);

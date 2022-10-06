@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use rand::seq::SliceRandom;
 use crate::{
+    Device,
     addons::detection::instance::DetInstancesGroup,
     addons::detection::instance::DetInstanceData,
     addons::detection::instance_dataset::DetInstancesDataset,
@@ -129,10 +130,11 @@ impl DetDataset {
         }
 
     }
-    pub fn iter(&self, batch_size: usize) -> det_dataset_iter::DatasetIter {
+    pub fn iter(&self, batch_size: usize, device: Device) -> det_dataset_iter::DatasetIter {
         det_dataset_iter::DatasetIter::new(
             self.clone(),
             batch_size,
+            device,
         )
     }
     pub fn loads(json_str: &String) -> DetDataset {

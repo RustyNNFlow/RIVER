@@ -1,5 +1,6 @@
 extern crate serde;
 extern crate anyhow;
+use river::Device;
 use river::datasets::{
     det_dataset,
     det_dataset_iter,
@@ -63,7 +64,7 @@ fn test_detection_dataset_train_iter(){
         Some(String::from("tests/assets/detection/dataset/category_info.json")),
     );
 
-    for (idx, (bimages, gt_labels, gt_bboxes, ins_groups)) in obj.iter(1).enumerate(){
+    for (idx, (bimages, gt_labels, gt_bboxes, ins_groups)) in obj.iter(1, Device::cuda_if_available()).enumerate(){
         println!("{} {:?} {:?} {:?} {:?}", idx, bimages, gt_labels, gt_bboxes, ins_groups);
     }
 
@@ -83,7 +84,7 @@ fn test_detection_dataset_test_iter(){
         None,
         None,
     );
-    for (idx, (bimages, gt_labels, gt_bboxes, ins_groups)) in obj.iter(1).enumerate(){
+    for (idx, (bimages, gt_labels, gt_bboxes, ins_groups)) in obj.iter(1, Device::cuda_if_available()).enumerate(){
         println!("{} {:?} {:?} {:?} {:?}", idx, bimages, gt_labels, gt_bboxes, ins_groups);
     }
 }

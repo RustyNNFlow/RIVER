@@ -19,7 +19,7 @@ pub struct DatasetIter {
 
 impl DatasetIter {
 
-    pub fn f_new(dataset: DetDataset, batch_size: usize) -> Result<DatasetIter, TchError> {
+    pub fn f_new(dataset: DetDataset, batch_size: usize, device: Device) -> Result<DatasetIter, TchError> {
         let total_size = dataset.len();
 
         Ok(DatasetIter {
@@ -27,13 +27,13 @@ impl DatasetIter {
             batch_index:0,
             batch_size:batch_size,
             total_size:total_size,
-            device: Device::Cpu,
+            device: device,
             return_smaller_last_batch: false,
         })
     }
 
-    pub fn new(dataset: DetDataset, batch_size: usize) -> DatasetIter {
-        DatasetIter::f_new(dataset, batch_size).unwrap()
+    pub fn new(dataset: DetDataset, batch_size: usize, device: Device) -> DatasetIter {
+        DatasetIter::f_new(dataset, batch_size, device).unwrap()
     }
 
     /// Shuffles the dataset.
