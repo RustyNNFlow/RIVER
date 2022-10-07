@@ -27,15 +27,14 @@ pub fn sigmoid_focal_loss(
                 .g_add(& target.neg())
                 .g_mul(&pred_sigmoid)
         );
-    let focal_weight = Tensor::of_slice(&[alpha])
+
+    let focal_weight = (Tensor::of_slice(&[alpha])
         .to_device(device)
         .g_mul(&target)
         .g_add(&
             Tensor::of_slice(&[1. - alpha]).to_device(device)
-                .g_mul(&Tensor::of_slice(&[1.]).to_device(device).g_add(& target.neg()))
-                .g_mul(&pt.pow(&Tensor::of_slice(&[gamma]).to_device(device)))
-        );
-
+                .g_mul(&Tensor::of_slice(&[1.]).to_device(device).g_sub(& target))
+                )).g_mul(&pt.pow(&Tensor::of_slice(&[gamma]).to_device(device)));
     let loss:Tensor = pred.binary_cross_entropy_with_logits::<Tensor>(
         &target,
         None,
@@ -88,7 +87,6 @@ impl FocalLoss {
         let num_classes = pred.size()[1];
         let mut target = target.one_hot(num_classes+1).squeeze_dim(1);
         target = target.narrow(1, 1, num_classes);
-
         self.loss_weight*sigmoid_focal_loss(pred, target, self.gamma, self.alpha, avg_factor)
     }
 }

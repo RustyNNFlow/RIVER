@@ -430,7 +430,7 @@ impl FCOSHead {
             );
         }
 
-
+        println!("loss_cls:{:?} loss_bbox:{:?}",loss_cls,loss_bbox);
         loss_cls+loss_bbox
     }
 }
