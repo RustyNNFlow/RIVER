@@ -6,7 +6,7 @@ pub mod data;
 pub mod datasets;
 pub mod modules;
 pub mod vision;
-
+pub mod core;
 mod error;
 pub use error::TchError;
 
